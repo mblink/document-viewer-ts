@@ -1,0 +1,89 @@
+div.viewerContainer {
+  height: 65vh;
+  display: flex;
+  width: 100%;
+  background: linear-gradient(#ffffff,#edebe9);
+  overflow: hidden;
+  position: relative;
+  border: 1px solid #e1e1e1;
+}
+
+div.canvasContainer {
+  overflow: scroll;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+}
+
+div.pageContainer {
+  position: relative;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  filter: drop-shadow(0 0 3px #d2d5d8);
+}
+
+.textLayer {
+  position: absolute;
+  text-align: initial;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  opacity: 0.5;
+  line-height: 1;
+  text-size-adjust: none;
+  color: transparent;
+}
+
+.textLayer > span {
+  color: transparent;
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0% 0%;
+}
+
+.viewerControls {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 1rem;
+  background-color: rgba(100, 100, 100, 0.75);
+  color: white;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 20rem;
+  opacity: 0;
+  transition: opacity 300ms;
+  z-index: 999;
+  border-radius: 0.5rem;
+}
+
+.viewerControls:hover {
+  opacity: 1;
+}
+
+.pageNumber {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  font-family: sans-serif;
+  font-size: 0.75rem;
+  width: 5rem;
+}
+
+.viewerControls button {
+  display: flex;
+  border: none;
+  color: white;
+  background-color: transparent;
+  align-items: center;
+  justify-content: center;
+}
