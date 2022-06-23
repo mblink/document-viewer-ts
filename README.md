@@ -19,7 +19,7 @@ const config = {
     new CopyPlugin({
       patterns: [
         {
-          from: "PATH/TO/NODE_MODULES/document-viewer/node_modules/pdfjs-dist/build/pdf.worker.min.js",
+          from: "PATH/TO/NODE_MODULES/document-viewer/dist/webpack/pdf.worker.bundle.js",
           to: "PATH/TO/WORKER/FILE"
         }
       ]
