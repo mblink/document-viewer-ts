@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.init = exports.renderDocument = void 0;
+exports.init = exports.renderDocument = exports.renderPDF = void 0;
 const pdfjs_dist_1 = require("pdfjs-dist");
 const DEFAULT_URL = 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/examples/learning/helloworld.pdf';
 const chevronLeft = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16">
@@ -52,7 +52,7 @@ const scalePDF = (textLayerDiv, textContent, pdfPage, canvas, viewport, document
     });
     recalculatePDFPageBreaks(documentId);
 };
-const renderPDF = (containerDiv, documentUrl) => {
+const renderPDF = (containerDiv, documentUrl) => __awaiter(void 0, void 0, void 0, function* () {
     const documentId = containerDiv.id;
     vw.viewerState[documentId] = {
         pageBreaks: [],
@@ -70,6 +70,7 @@ const renderPDF = (containerDiv, documentUrl) => {
     const fullPageNumberDiv = document.createElement('div');
     fullPageNumberDiv.className = 'pageNumber';
     const pageNumberDiv = document.createElement('div');
+    pageNumberDiv.className = 'pageNumberRaw';
     const pageDiv = document.createElement('div');
     const outOfDiv = document.createElement('div');
     const pageCountDiv = document.createElement('div');
@@ -77,7 +78,16 @@ const renderPDF = (containerDiv, documentUrl) => {
     const prevButton = document.createElement('button');
     const loadingTask = (0, pdfjs_dist_1.getDocument)(documentUrl);
     const zoomButton = document.createElement('button');
-    loadingTask.promise
+    // handle updating page number on scroll
+    canvasContainer.onscroll = () => {
+        const pageNumber = getPage(canvasContainer.scrollTop);
+        pageNumberDiv.textContent = `${pageNumber}`;
+        if (!controlsDiv.style.opacity) {
+            controlsDiv.style.opacity = '1';
+            setTimeout(() => controlsDiv.removeAttribute('style'), 1000);
+        }
+    };
+    yield loadingTask.promise
         .then(function (pdfDocument) {
         var _a, _b, _c, _d;
         return __awaiter(this, void 0, void 0, function* () {
@@ -169,6 +179,7 @@ const renderPDF = (containerDiv, documentUrl) => {
                     });
                 }
             }
+            console.log('done');
         });
     })
         .catch((err) => {
@@ -176,16 +187,8 @@ const renderPDF = (containerDiv, documentUrl) => {
         errorDiv.textContent = `There was an error fetching your document. Please try again later. Error: ${err}`;
         containerDiv.append(errorDiv);
     });
-    // handle updating page number on scroll
-    canvasContainer.onscroll = () => {
-        const pageNumber = getPage(canvasContainer.scrollTop);
-        pageNumberDiv.textContent = `${pageNumber}`;
-        if (!controlsDiv.style.opacity) {
-            controlsDiv.style.opacity = '1';
-            setTimeout(() => controlsDiv.removeAttribute('style'), 1000);
-        }
-    };
-};
+});
+exports.renderPDF = renderPDF;
 const renderDocx = (containerDiv, documentUrl) => {
     const microsoftViewer = document.createElement('iframe');
     microsoftViewer.width = '100%';
@@ -201,7 +204,8 @@ const renderDocument = (containerDiv) => {
     const splitOnPeriods = documentUrl.split('.');
     const extension = (_a = splitOnPeriods[(splitOnPeriods.length - 1)]) === null || _a === void 0 ? void 0 : _a.split('?')[0];
     if (extension === 'pdf') {
-        renderPDF(containerDiv, documentUrl);
+        (0, exports.renderPDF)(containerDiv, documentUrl);
+        console.log('rendered');
     }
     else if (extension === 'doc' || extension === 'docx') {
         renderDocx(containerDiv, documentUrl);

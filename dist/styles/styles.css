@@ -1,68 +1,68 @@
 div.viewerContainer {
-  height: 65vh;
-  display: flex;
-  width: 100%;
   background: linear-gradient(#ffffff,#edebe9);
+  border: 1px solid #e1e1e1;
+  display: flex;
+  height: 65vh;
   overflow: hidden;
   position: relative;
-  border: 1px solid #e1e1e1;
+  width: 100%;
 }
 
 div.canvasContainer {
-  overflow: scroll;
+  align-items: center;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  align-items: center;
+  overflow: scroll;
   width: 100%;
 }
 
 div.pageContainer {
-  position: relative;
-  margin-top: 1rem;
-  margin-bottom: 1rem;
   filter: drop-shadow(0 0 3px #d2d5d8);
+  position: relative;
+  margin-bottom: 1rem;
+  margin-top: 1rem;
 }
 
 .textLayer {
-  position: absolute;
-  text-align: initial;
-  left: 0;
-  top: 0;
-  right: 0;
   bottom: 0;
-  overflow: hidden;
-  opacity: 0.5;
-  line-height: 1;
-  text-size-adjust: none;
   color: transparent;
+  left: 0;
+  line-height: 1;
+  opacity: 0.5;
+  overflow: hidden;
+  position: absolute;
+  right: 0;
+  text-align: initial;
+  text-size-adjust: none;
+  top: 0;
 }
 
 .textLayer > span {
   color: transparent;
-  position: absolute;
-  white-space: pre;
   cursor: text;
+  position: absolute;
   transform-origin: 0% 0%;
+  white-space: pre;
 }
 
 .viewerControls {
-  position: absolute;
-  bottom: 2rem;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 1rem;
+  align-items: center;
   background-color: rgba(100, 100, 100, 0.75);
+  border-radius: 0.5rem;
+  bottom: 2rem;
   color: white;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  align-items: center;
-  width: 20rem;
+  left: 50%;
   opacity: 0;
+  padding: 1rem;
+  position: absolute;
+  transform: translateX(-50%);
   transition: opacity 300ms;
+  width: 20rem;
   z-index: 999;
-  border-radius: 0.5rem;
 }
 
 .viewerControls:hover {
@@ -70,20 +70,20 @@ div.pageContainer {
 }
 
 .pageNumber {
+  align-items: center;
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
   font-family: sans-serif;
   font-size: 0.75rem;
+  justify-content: space-between;
   width: 5rem;
 }
 
 .viewerControls button {
-  display: flex;
+  align-items: center;
+  background-color: transparent;
   border: none;
   color: white;
-  background-color: transparent;
-  align-items: center;
+  display: flex;
   justify-content: center;
 }

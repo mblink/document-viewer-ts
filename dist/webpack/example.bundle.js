@@ -2,36 +2,43 @@
 /******/ 	var __webpack_modules__ = ([
 /* 0 */,
 /* 1 */
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "Viewer": () => (/* reexport safe */ _Viewer__WEBPACK_IMPORTED_MODULE_0__.Viewer),
+/* harmony export */   "init": () => (/* reexport safe */ _base__WEBPACK_IMPORTED_MODULE_1__.init)
+/* harmony export */ });
+/* harmony import */ var _Viewer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2);
+/* harmony import */ var _base__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(18);
 
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Viewer = exports.init = void 0;
-const Viewer_1 = __webpack_require__(2);
-Object.defineProperty(exports, "Viewer", ({ enumerable: true, get: function () { return Viewer_1.Viewer; } }));
-const base_1 = __webpack_require__(17);
-Object.defineProperty(exports, "init", ({ enumerable: true, get: function () { return base_1.init; } }));
+
+
 //# sourceMappingURL=index.js.map
 
 /***/ }),
 /* 2 */
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "Viewer": () => (/* binding */ Viewer)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3);
+/* harmony import */ var pdfjs_dist__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(11);
+/* harmony import */ var pdfjs_dist__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(pdfjs_dist__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _base__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(18);
 
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Viewer = void 0;
-const react_1 = __webpack_require__(3);
-const pdfjs_dist_1 = __webpack_require__(10);
-const base_1 = __webpack_require__(17);
+
+
 const Viewer = (props) => {
-    pdfjs_dist_1.GlobalWorkerOptions.workerSrc = props.workerSrc;
-    const viewerContainer = (0, react_1.useRef)(null);
-    (0, react_1.useEffect)(() => { viewerContainer.current && (0, base_1.renderDocument)(viewerContainer.current); }, []);
-    return react_1.default.createElement("div", { ref: viewerContainer, className: "viewerContainer", id: props.documentId, "data-document-url": props.documentUrl });
+    pdfjs_dist__WEBPACK_IMPORTED_MODULE_1__.GlobalWorkerOptions.workerSrc = props.workerSrc;
+    const viewerContainer = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+    (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => { viewerContainer.current && (0,_base__WEBPACK_IMPORTED_MODULE_2__.renderDocument)(viewerContainer.current); }, []);
+    return react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", { ref: viewerContainer, className: "viewerContainer", id: props.documentId, "data-document-url": props.documentUrl });
 };
-exports.Viewer = Viewer;
 //# sourceMappingURL=Viewer.js.map
 
 /***/ }),
@@ -39,17 +46,208 @@ exports.Viewer = Viewer;
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
+/* provided dependency */ var process = __webpack_require__(4);
 
 
 if (process.env.NODE_ENV === 'production') {
-  module.exports = __webpack_require__(4);
+  module.exports = __webpack_require__(5);
 } else {
-  module.exports = __webpack_require__(6);
+  module.exports = __webpack_require__(7);
 }
 
 
 /***/ }),
 /* 4 */
+/***/ ((module) => {
+
+// shim for using process in browser
+var process = module.exports = {};
+
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
+(function () {
+    try {
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
+        }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
+    }
+    try {
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
+        }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
+    }
+} ())
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+
+
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+
+
+
+}
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = runTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    runClearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        runTimeout(drainQueue);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) { return [] }
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+
+/***/ }),
+/* 5 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -62,7 +260,7 @@ if (process.env.NODE_ENV === 'production') {
  * LICENSE file in the root directory of this source tree.
  */
 
-var l=__webpack_require__(5),n="function"===typeof Symbol&&Symbol.for,p=n?Symbol.for("react.element"):60103,q=n?Symbol.for("react.portal"):60106,r=n?Symbol.for("react.fragment"):60107,t=n?Symbol.for("react.strict_mode"):60108,u=n?Symbol.for("react.profiler"):60114,v=n?Symbol.for("react.provider"):60109,w=n?Symbol.for("react.context"):60110,x=n?Symbol.for("react.forward_ref"):60112,y=n?Symbol.for("react.suspense"):60113,z=n?Symbol.for("react.memo"):60115,A=n?Symbol.for("react.lazy"):
+var l=__webpack_require__(6),n="function"===typeof Symbol&&Symbol.for,p=n?Symbol.for("react.element"):60103,q=n?Symbol.for("react.portal"):60106,r=n?Symbol.for("react.fragment"):60107,t=n?Symbol.for("react.strict_mode"):60108,u=n?Symbol.for("react.profiler"):60114,v=n?Symbol.for("react.provider"):60109,w=n?Symbol.for("react.context"):60110,x=n?Symbol.for("react.forward_ref"):60112,y=n?Symbol.for("react.suspense"):60113,z=n?Symbol.for("react.memo"):60115,A=n?Symbol.for("react.lazy"):
 60116,B="function"===typeof Symbol&&Symbol.iterator;function C(a){for(var b="https://reactjs.org/docs/error-decoder.html?invariant="+a,c=1;c<arguments.length;c++)b+="&args[]="+encodeURIComponent(arguments[c]);return"Minified React error #"+a+"; visit "+b+" for the full message or use the non-minified dev environment for full errors and additional helpful warnings."}
 var D={isMounted:function(){return!1},enqueueForceUpdate:function(){},enqueueReplaceState:function(){},enqueueSetState:function(){}},E={};function F(a,b,c){this.props=a;this.context=b;this.refs=E;this.updater=c||D}F.prototype.isReactComponent={};F.prototype.setState=function(a,b){if("object"!==typeof a&&"function"!==typeof a&&null!=a)throw Error(C(85));this.updater.enqueueSetState(this,a,b,"setState")};F.prototype.forceUpdate=function(a){this.updater.enqueueForceUpdate(this,a,"forceUpdate")};
 function G(){}G.prototype=F.prototype;function H(a,b,c){this.props=a;this.context=b;this.refs=E;this.updater=c||D}var I=H.prototype=new G;I.constructor=H;l(I,F.prototype);I.isPureReactComponent=!0;var J={current:null},K=Object.prototype.hasOwnProperty,L={key:!0,ref:!0,__self:!0,__source:!0};
@@ -81,7 +279,7 @@ exports.useLayoutEffect=function(a,b){return Z().useLayoutEffect(a,b)};exports.u
 
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ ((module) => {
 
 "use strict";
@@ -178,10 +376,11 @@ module.exports = shouldUseNative() ? Object.assign : function (target, source) {
 
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
+/* provided dependency */ var process = __webpack_require__(4);
 /** @license React v16.14.0
  * react.development.js
  *
@@ -199,8 +398,8 @@ if (process.env.NODE_ENV !== "production") {
   (function() {
 'use strict';
 
-var _assign = __webpack_require__(5);
-var checkPropTypes = __webpack_require__(7);
+var _assign = __webpack_require__(6);
+var checkPropTypes = __webpack_require__(8);
 
 var ReactVersion = '16.14.0';
 
@@ -2097,10 +2296,11 @@ exports.version = ReactVersion;
 
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
+/* provided dependency */ var process = __webpack_require__(4);
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -2113,9 +2313,9 @@ exports.version = ReactVersion;
 var printWarning = function() {};
 
 if (process.env.NODE_ENV !== 'production') {
-  var ReactPropTypesSecret = __webpack_require__(8);
+  var ReactPropTypesSecret = __webpack_require__(9);
   var loggedTypeFailures = {};
-  var has = __webpack_require__(9);
+  var has = __webpack_require__(10);
 
   printWarning = function(text) {
     var message = 'Warning: ' + text;
@@ -2207,7 +2407,7 @@ module.exports = checkPropTypes;
 
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ ((module) => {
 
 "use strict";
@@ -2226,16 +2426,17 @@ module.exports = ReactPropTypesSecret;
 
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ ((module) => {
 
 module.exports = Function.call.bind(Object.prototype.hasOwnProperty);
 
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
+/* provided dependency */ var process = __webpack_require__(4);
 /**
  * @licstart The following is the entire license notice for the
  * JavaScript code in this page
@@ -11803,7 +12004,7 @@ var _base_factory = __w_pdfjs_require__(6);
 
 const fetchData = function (url) {
   return new Promise((resolve, reject) => {
-    const fs = __webpack_require__(11);
+    const fs = __webpack_require__(12);
 
     fs.readFile(url, (error, data) => {
       if (error || !data) {
@@ -11818,7 +12019,7 @@ const fetchData = function (url) {
 
 class NodeCanvasFactory extends _base_factory.BaseCanvasFactory {
   _createCanvas(width, height) {
-    const Canvas = __webpack_require__(12);
+    const Canvas = __webpack_require__(13);
 
     return Canvas.createCanvas(width, height);
   }
@@ -15385,7 +15586,7 @@ exports.SVGGraphics = SVGGraphics;
           input = Buffer.from(literals);
         }
 
-        const output = (__webpack_require__(13).deflateSync)(input, {
+        const output = (__webpack_require__(14).deflateSync)(input, {
           level: 9
         });
 
@@ -16819,13 +17020,13 @@ var _network_utils = __w_pdfjs_require__(26);
 
 ;
 
-const fs = __webpack_require__(11);
+const fs = __webpack_require__(12);
 
-const http = __webpack_require__(14);
+const http = __webpack_require__(15);
 
-const https = __webpack_require__(15);
+const https = __webpack_require__(16);
 
-const url = __webpack_require__(16);
+const url = __webpack_require__(17);
 
 const fileUriRegex = /^file:\/\/\/[a-zA-Z]:\//;
 
@@ -18658,12 +18859,6 @@ const pdfjsBuild = 'eaaa8b4ad';
 //# sourceMappingURL=pdf.js.map
 
 /***/ }),
-/* 11 */
-/***/ (() => {
-
-/* (ignored) */
-
-/***/ }),
 /* 12 */
 /***/ (() => {
 
@@ -18695,11 +18890,24 @@ const pdfjsBuild = 'eaaa8b4ad';
 
 /***/ }),
 /* 17 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+/***/ (() => {
+
+/* (ignored) */
+
+/***/ }),
+/* 18 */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
-
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "init": () => (/* binding */ init),
+/* harmony export */   "renderDocument": () => (/* binding */ renderDocument),
+/* harmony export */   "renderPDF": () => (/* binding */ renderPDF)
+/* harmony export */ });
+/* harmony import */ var pdfjs_dist__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(11);
+/* harmony import */ var pdfjs_dist__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(pdfjs_dist__WEBPACK_IMPORTED_MODULE_0__);
+var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -18708,9 +18916,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.init = exports.renderDocument = void 0;
-const pdfjs_dist_1 = __webpack_require__(10);
+
 const DEFAULT_URL = 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/examples/learning/helloworld.pdf';
 const chevronLeft = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16">
 <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
@@ -18745,14 +18951,14 @@ const scalePDF = (textLayerDiv, textContent, pdfPage, canvas, viewport, document
     const vs = pdfPage.getViewport({ scale });
     textLayerDiv.style.width = `${vs.width}px`;
     textLayerDiv.style.height = `${vs.height}px`;
-    (0, pdfjs_dist_1.renderTextLayer)({
+    (0,pdfjs_dist__WEBPACK_IMPORTED_MODULE_0__.renderTextLayer)({
         textContent,
         container: textLayerDiv,
         viewport: vs
     });
     recalculatePDFPageBreaks(documentId);
 };
-const renderPDF = (containerDiv, documentUrl) => {
+const renderPDF = (containerDiv, documentUrl) => __awaiter(void 0, void 0, void 0, function* () {
     const documentId = containerDiv.id;
     vw.viewerState[documentId] = {
         pageBreaks: [],
@@ -18770,14 +18976,24 @@ const renderPDF = (containerDiv, documentUrl) => {
     const fullPageNumberDiv = document.createElement('div');
     fullPageNumberDiv.className = 'pageNumber';
     const pageNumberDiv = document.createElement('div');
+    pageNumberDiv.className = 'pageNumberRaw';
     const pageDiv = document.createElement('div');
     const outOfDiv = document.createElement('div');
     const pageCountDiv = document.createElement('div');
     const nextButton = document.createElement('button');
     const prevButton = document.createElement('button');
-    const loadingTask = (0, pdfjs_dist_1.getDocument)(documentUrl);
+    const loadingTask = (0,pdfjs_dist__WEBPACK_IMPORTED_MODULE_0__.getDocument)(documentUrl);
     const zoomButton = document.createElement('button');
-    loadingTask.promise
+    // handle updating page number on scroll
+    canvasContainer.onscroll = () => {
+        const pageNumber = getPage(canvasContainer.scrollTop);
+        pageNumberDiv.textContent = `${pageNumber}`;
+        if (!controlsDiv.style.opacity) {
+            controlsDiv.style.opacity = '1';
+            setTimeout(() => controlsDiv.removeAttribute('style'), 1000);
+        }
+    };
+    yield loadingTask.promise
         .then(function (pdfDocument) {
         var _a, _b, _c, _d;
         return __awaiter(this, void 0, void 0, function* () {
@@ -18869,6 +19085,7 @@ const renderPDF = (containerDiv, documentUrl) => {
                     });
                 }
             }
+            console.log('done');
         });
     })
         .catch((err) => {
@@ -18876,16 +19093,7 @@ const renderPDF = (containerDiv, documentUrl) => {
         errorDiv.textContent = `There was an error fetching your document. Please try again later. Error: ${err}`;
         containerDiv.append(errorDiv);
     });
-    // handle updating page number on scroll
-    canvasContainer.onscroll = () => {
-        const pageNumber = getPage(canvasContainer.scrollTop);
-        pageNumberDiv.textContent = `${pageNumber}`;
-        if (!controlsDiv.style.opacity) {
-            controlsDiv.style.opacity = '1';
-            setTimeout(() => controlsDiv.removeAttribute('style'), 1000);
-        }
-    };
-};
+});
 const renderDocx = (containerDiv, documentUrl) => {
     const microsoftViewer = document.createElement('iframe');
     microsoftViewer.width = '100%';
@@ -18902,23 +19110,22 @@ const renderDocument = (containerDiv) => {
     const extension = (_a = splitOnPeriods[(splitOnPeriods.length - 1)]) === null || _a === void 0 ? void 0 : _a.split('?')[0];
     if (extension === 'pdf') {
         renderPDF(containerDiv, documentUrl);
+        console.log('rendered');
     }
     else if (extension === 'doc' || extension === 'docx') {
         renderDocx(containerDiv, documentUrl);
     }
 };
-exports.renderDocument = renderDocument;
 const loadDocuments = () => {
     const containerDivs = document.getElementsByClassName('viewerContainer');
-    Array.from(containerDivs).forEach(exports.renderDocument);
+    Array.from(containerDivs).forEach(renderDocument);
 };
 const init = (workerSrc) => {
     // The workerSrc property shall be specified.
-    pdfjs_dist_1.GlobalWorkerOptions.workerSrc = workerSrc;
+    pdfjs_dist__WEBPACK_IMPORTED_MODULE_0__.GlobalWorkerOptions.workerSrc = workerSrc;
     loadDocuments();
     window.addEventListener('load', loadDocuments);
 };
-exports.init = init;
 //# sourceMappingURL=base.js.map
 
 /***/ })
@@ -18949,6 +19156,47 @@ exports.init = init;
 /******/ 	}
 /******/ 	
 /************************************************************************/
+/******/ 	/* webpack/runtime/compat get default export */
+/******/ 	(() => {
+/******/ 		// getDefaultExport function for compatibility with non-harmony modules
+/******/ 		__webpack_require__.n = (module) => {
+/******/ 			var getter = module && module.__esModule ?
+/******/ 				() => (module['default']) :
+/******/ 				() => (module);
+/******/ 			__webpack_require__.d(getter, { a: getter });
+/******/ 			return getter;
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__webpack_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/************************************************************************/
 var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be in strict mode.
 (() => {
@@ -18956,8 +19204,8 @@ var __webpack_exports__ = {};
 var exports = __webpack_exports__;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const lib_1 = __webpack_require__(1);
-(0, lib_1.init)("../../dist/webpack/pdf.worker.bundle.js");
+const es2015_1 = __webpack_require__(1);
+(0, es2015_1.init)("../../dist/worker/pdf.worker.min.js");
 //# sourceMappingURL=example.js.map
 })();
 

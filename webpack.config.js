@@ -5,8 +5,6 @@ module.exports = {
   context: __dirname,
   entry: {
     example: "./dist/example/example.js",
-    main: "./dist/lib/index.js",
-    "pdf.worker": "pdfjs-dist/build/pdf.worker.entry",
   },
   mode: "none",
   output: {
@@ -14,4 +12,9 @@ module.exports = {
     publicPath: "./dist/webpack/",
     filename: "[name].bundle.js",
   },
+  plugins: [
+    new webpack.ProvidePlugin({
+      process: 'process/browser',
+    }),
+  ]
 };

@@ -1,3 +1,3 @@
-import { init } from '../../dist/lib';
+import { init } from '../../dist/es2015';
 
-init("../../dist/webpack/pdf.worker.bundle.js");
+init("../../dist/worker/pdf.worker.min.js");

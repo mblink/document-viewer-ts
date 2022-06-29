@@ -49,7 +49,7 @@ const scalePDF = (textLayerDiv, textContent, pdfPage, canvas, viewport, document
     });
     recalculatePDFPageBreaks(documentId);
 };
-const renderPDF = (containerDiv, documentUrl) => {
+export const renderPDF = (containerDiv, documentUrl) => __awaiter(void 0, void 0, void 0, function* () {
     const documentId = containerDiv.id;
     vw.viewerState[documentId] = {
         pageBreaks: [],
@@ -67,6 +67,7 @@ const renderPDF = (containerDiv, documentUrl) => {
     const fullPageNumberDiv = document.createElement('div');
     fullPageNumberDiv.className = 'pageNumber';
     const pageNumberDiv = document.createElement('div');
+    pageNumberDiv.className = 'pageNumberRaw';
     const pageDiv = document.createElement('div');
     const outOfDiv = document.createElement('div');
     const pageCountDiv = document.createElement('div');
@@ -74,7 +75,16 @@ const renderPDF = (containerDiv, documentUrl) => {
     const prevButton = document.createElement('button');
     const loadingTask = getDocument(documentUrl);
     const zoomButton = document.createElement('button');
-    loadingTask.promise
+    // handle updating page number on scroll
+    canvasContainer.onscroll = () => {
+        const pageNumber = getPage(canvasContainer.scrollTop);
+        pageNumberDiv.textContent = `${pageNumber}`;
+        if (!controlsDiv.style.opacity) {
+            controlsDiv.style.opacity = '1';
+            setTimeout(() => controlsDiv.removeAttribute('style'), 1000);
+        }
+    };
+    yield loadingTask.promise
         .then(function (pdfDocument) {
         var _a, _b, _c, _d;
         return __awaiter(this, void 0, void 0, function* () {
@@ -166,6 +176,7 @@ const renderPDF = (containerDiv, documentUrl) => {
                     });
                 }
             }
+            console.log('done');
         });
     })
         .catch((err) => {
@@ -173,16 +184,7 @@ const renderPDF = (containerDiv, documentUrl) => {
         errorDiv.textContent = `There was an error fetching your document. Please try again later. Error: ${err}`;
         containerDiv.append(errorDiv);
     });
-    // handle updating page number on scroll
-    canvasContainer.onscroll = () => {
-        const pageNumber = getPage(canvasContainer.scrollTop);
-        pageNumberDiv.textContent = `${pageNumber}`;
-        if (!controlsDiv.style.opacity) {
-            controlsDiv.style.opacity = '1';
-            setTimeout(() => controlsDiv.removeAttribute('style'), 1000);
-        }
-    };
-};
+});
 const renderDocx = (containerDiv, documentUrl) => {
     const microsoftViewer = document.createElement('iframe');
     microsoftViewer.width = '100%';
@@ -199,6 +201,7 @@ export const renderDocument = (containerDiv) => {
     const extension = (_a = splitOnPeriods[(splitOnPeriods.length - 1)]) === null || _a === void 0 ? void 0 : _a.split('?')[0];
     if (extension === 'pdf') {
         renderPDF(containerDiv, documentUrl);
+        console.log('rendered');
     }
     else if (extension === 'doc' || extension === 'docx') {
         renderDocx(containerDiv, documentUrl);
