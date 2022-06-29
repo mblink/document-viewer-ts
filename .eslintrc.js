@@ -12,7 +12,9 @@ module.exports = {
   parserOptions: {
     project: [
       "tsconfig.json",
-      "tsconfig.commonjs.json"
+      "tsconfig.commonjs.json",
+      "tsconfig.example.json",
+      "test/tsconfig.json"
     ],
   },
   plugins: [

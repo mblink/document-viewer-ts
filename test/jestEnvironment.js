@@ -3,4 +3,4 @@ jest.requireActual('core-js/actual/structured-clone'); // polyfill for structure
 // const smoothscroll = jest.requireActual('smoothscroll-polyfill')
 // smoothscroll.polyfill();
 
-Element.prototype.scrollTo = () => {};
+Element.prototype.scrollTo = () => { return; };
