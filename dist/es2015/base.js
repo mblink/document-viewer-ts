@@ -8,7 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { GlobalWorkerOptions, getDocument, renderTextLayer } from 'pdfjs-dist';
-const DEFAULT_URL = 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/examples/learning/helloworld.pdf';
 const chevronLeft = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16">
 <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
 </svg>`;
@@ -23,6 +22,11 @@ const minusSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://ww
 <path d="m16.742 15.501l-2.742-2.743h-0.643l-0.684-0.684c0.827-0.961 1.327-2.208 1.327-3.574 0-3.037-2.463-5.5-5.5-5.5s-5.5 2.463-5.5 5.5 2.463 5.5 5.5 5.5c1.367 0 2.613-0.502 3.576-1.326l0.684 0.682v0.644l2.742 2.742c0.342 0.343 0.896 0.344 1.24 0.001 0.344-0.345 0.344-0.898 0-1.242zm-8.242-3.301c-2.044 0-3.7-1.657-3.7-3.7s1.656-3.7 3.7-3.7c2.043 0 3.699 1.657 3.699 3.7s-1.656 3.7-3.699 3.7z"/>
 <polygon opacity=".85" enable-background="new" points="9 8 8 8 6 8 6 9 8 9 9 9 11 9 11 8"/>
 </g></svg>`;
+const handleError = (containerDiv) => (err) => {
+    const errorDiv = document.createElement('div');
+    errorDiv.textContent = `There was an error fetching your document. Please try again later. Error: ${err}`;
+    containerDiv.append(errorDiv);
+};
 const vw = window;
 vw.viewerState = {};
 const pdfScale = 10;
@@ -36,7 +40,7 @@ const recalculatePDFPageBreaks = (documentId) => {
             return [...acc, breakPoint];
         }, []);
 };
-const scalePDF = (textLayerDiv, textContent, pdfPage, canvas, viewport, documentId) => {
+const scalePDFPage = (textLayerDiv, textContent, pdfPage, canvas, viewport) => {
     textLayerDiv.innerHTML = '';
     const scale = pdfScale * (canvas.offsetWidth / viewport.width);
     const vs = pdfPage.getViewport({ scale });
@@ -47,10 +51,12 @@ const scalePDF = (textLayerDiv, textContent, pdfPage, canvas, viewport, document
         container: textLayerDiv,
         viewport: vs
     });
+};
+const scalePDF = (textLayerDiv, textContent, pdfPage, canvas, viewport, documentId) => {
+    scalePDFPage(textLayerDiv, textContent, pdfPage, canvas, viewport);
     recalculatePDFPageBreaks(documentId);
 };
 export const renderPDF = (containerDiv, documentUrl) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d;
     const documentId = containerDiv.id;
     vw.viewerState[documentId] = {
         pageBreaks: [],
@@ -99,24 +105,18 @@ export const renderPDF = (containerDiv, documentUrl) => __awaiter(void 0, void 0
         fullPageNumberDiv.appendChild(pageNumberDiv);
         fullPageNumberDiv.appendChild(outOfDiv);
         fullPageNumberDiv.appendChild(pageCountDiv);
-        nextButton.onclick = () => {
+        const skipPage = (direction) => () => {
             var _a;
             const pageNumber = parseInt(pageNumberDiv.textContent || '1');
-            if (pageNumber < pdfDocument.numPages) {
-                const nextPage = getPageId(pageNumber + 1);
+            const nextPageNumber = pageNumber + direction;
+            if (nextPageNumber <= pdfDocument.numPages && nextPageNumber > 0) {
+                const nextPage = getPageId(nextPageNumber);
                 canvasContainer.scrollTo({ top: ((_a = document.getElementById(nextPage)) === null || _a === void 0 ? void 0 : _a.parentElement).offsetTop });
-                pageNumberDiv.textContent = `${pageNumber + 1}`;
+                pageNumberDiv.textContent = `${pageNumber + direction}`;
             }
         };
-        prevButton.onclick = () => {
-            var _a;
-            const pageNumber = parseInt(pageNumberDiv.textContent || '1');
-            if (pageNumber > 1) {
-                const prevPage = getPageId(pageNumber - 1);
-                canvasContainer.scrollTo({ top: ((_a = document.getElementById(prevPage)) === null || _a === void 0 ? void 0 : _a.parentElement).offsetTop });
-                pageNumberDiv.textContent = `${pageNumber - 1}`;
-            }
-        };
+        nextButton.onclick = skipPage(1);
+        prevButton.onclick = skipPage(-1);
         nextButton.innerHTML = chevronRight;
         prevButton.innerHTML = chevronLeft;
         zoomButton.innerHTML = plusSvg;
@@ -126,64 +126,56 @@ export const renderPDF = (containerDiv, documentUrl) => __awaiter(void 0, void 0
         controlsDiv.appendChild(nextButton);
         controlsDiv.appendChild(zoomButton);
         containerDiv.appendChild(canvasContainer);
-        const pages = [...Array(pdfDocument.numPages).keys()];
-        // load each page synchronously so that they appear in order
-        while (pages.length) {
-            const page = pages.shift();
-            if (page !== undefined) {
-                // render the PDF page
-                const pageContainer = document.createElement('div');
-                pageContainer.className = 'pageContainer';
-                pageContainer.style.width = defaultWidth;
-                canvasContainer.appendChild(pageContainer);
-                const pdfPage = yield pdfDocument.getPage(page + 1);
-                const viewport = pdfPage.getViewport({ scale: pdfScale });
-                const canvas = document.createElement('canvas');
-                canvas.className = 'pdfViewerCanvas';
-                canvas.id = getPageId(page + 1);
-                pageContainer.appendChild(canvas);
-                (_a = vw.viewerState[documentId]) === null || _a === void 0 ? void 0 : _a.canvasElements.push(canvas);
-                canvas.width = viewport.width;
-                canvas.height = viewport.height;
-                canvas.style.width = '100%';
-                const ctx = canvas.getContext('2d');
-                yield pdfPage.render({
-                    canvasContext: ctx || {},
-                    viewport,
-                });
-                // initial setup for page breakpoints
-                const breakPoint = (((_b = vw.viewerState[documentId]) === null || _b === void 0 ? void 0 : _b.pageBreaks[(((_c = vw.viewerState[documentId]) === null || _c === void 0 ? void 0 : _c.pageBreaks.length) || 0) - 1]) || -(canvas.offsetHeight / 2 + 16)) + canvas.offsetHeight + 32;
-                (_d = vw.viewerState[documentId]) === null || _d === void 0 ? void 0 : _d.pageBreaks.push(breakPoint);
-                // render text layer for selection purposes
-                const textLayerDiv = document.createElement('div');
-                textLayerDiv.className = 'textLayer';
-                const textContent = yield pdfPage.getTextContent();
-                pageContainer.appendChild(textLayerDiv);
+        const canvasElements = [...Array(pdfDocument.numPages).keys()].map(page => {
+            const pageContainer = document.createElement('div');
+            pageContainer.className = 'pageContainer';
+            pageContainer.style.width = defaultWidth;
+            canvasContainer.appendChild(pageContainer);
+            const canvas = document.createElement('canvas');
+            canvas.className = 'pdfViewerCanvas';
+            canvas.id = getPageId(page + 1);
+            pageContainer.appendChild(canvas);
+            return { pageContainer, canvas };
+        });
+        (vw.viewerState[documentId] || { canvasElements: [] }).canvasElements = canvasElements.map(({ canvas }) => canvas);
+        // load pages simultaneously
+        yield Promise.all(canvasElements.map(({ pageContainer, canvas }, page) => __awaiter(void 0, void 0, void 0, function* () {
+            const pdfPage = yield pdfDocument.getPage(page + 1);
+            const viewport = pdfPage.getViewport({ scale: pdfScale });
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            canvas.style.width = '100%';
+            const ctx = canvas.getContext('2d');
+            yield pdfPage.render({
+                canvasContext: ctx || {},
+                viewport,
+            });
+            const textLayerDiv = document.createElement('div');
+            textLayerDiv.className = 'textLayer';
+            const textContent = yield pdfPage.getTextContent();
+            pageContainer.appendChild(textLayerDiv);
+            scalePDFPage(textLayerDiv, textContent, pdfPage, canvas, viewport);
+            // handle zoom in/out
+            zoomButton.addEventListener('click', () => {
+                if (pageContainer.style.width === defaultWidth) {
+                    pageContainer.style.width = zoomedWidth;
+                    zoomButton.innerHTML = minusSvg;
+                }
+                else {
+                    pageContainer.style.width = defaultWidth;
+                    zoomButton.innerHTML = plusSvg;
+                }
                 scalePDF(textLayerDiv, textContent, pdfPage, canvas, viewport, documentId);
-                // handle zoom in/out
-                zoomButton.addEventListener('click', () => {
-                    if (pageContainer.style.width === defaultWidth) {
-                        pageContainer.style.width = zoomedWidth;
-                        zoomButton.innerHTML = minusSvg;
-                    }
-                    else {
-                        pageContainer.style.width = defaultWidth;
-                        zoomButton.innerHTML = plusSvg;
-                    }
-                    scalePDF(textLayerDiv, textContent, pdfPage, canvas, viewport, documentId);
-                });
-                // make sure text selection layer and page breaks resize dynamically
-                window.addEventListener('resize', () => {
-                    scalePDF(textLayerDiv, textContent, pdfPage, canvas, viewport, documentId);
-                });
-            }
-        }
-        return;
+            });
+            // make sure text selection layer and page breaks resize dynamically
+            window.addEventListener('resize', () => {
+                scalePDF(textLayerDiv, textContent, pdfPage, canvas, viewport, documentId);
+            });
+        })));
+        recalculatePDFPageBreaks(documentId);
     }
     catch (err) {
-        const errorDiv = document.createElement('div');
-        errorDiv.textContent = `There was an error fetching your document. Please try again later. Error: ${err}`;
-        containerDiv.append(errorDiv);
+        handleError(containerDiv)(err);
         return err;
     }
 });
@@ -198,14 +190,24 @@ const renderDocx = (containerDiv, documentUrl) => {
 };
 export const renderDocument = (containerDiv) => {
     var _a;
-    const documentUrl = containerDiv.getAttribute('data-document-url') || DEFAULT_URL;
-    const splitOnPeriods = documentUrl.split('.');
-    const extension = (_a = splitOnPeriods[(splitOnPeriods.length - 1)]) === null || _a === void 0 ? void 0 : _a.split('?')[0];
-    if (extension === 'pdf') {
-        renderPDF(containerDiv, documentUrl);
+    try {
+        const documentUrl = containerDiv.getAttribute('data-document-url');
+        if (!documentUrl)
+            throw new Error('No document url specified');
+        const splitOnPeriods = documentUrl.split('.');
+        const extension = (_a = splitOnPeriods[(splitOnPeriods.length - 1)]) === null || _a === void 0 ? void 0 : _a.split('?')[0];
+        if (extension === 'pdf') {
+            renderPDF(containerDiv, documentUrl);
+        }
+        else if (extension === 'doc' || extension === 'docx') {
+            renderDocx(containerDiv, documentUrl);
+        }
+        else {
+            throw new Error('Unsupported file type');
+        }
     }
-    else if (extension === 'doc' || extension === 'docx') {
-        renderDocx(containerDiv, documentUrl);
+    catch (err) {
+        handleError(containerDiv)(err);
     }
 };
 const loadDocuments = () => {
@@ -213,7 +215,6 @@ const loadDocuments = () => {
     Array.from(containerDivs).forEach(renderDocument);
 };
 export const init = (workerSrc) => {
-    // The workerSrc property shall be specified.
     GlobalWorkerOptions.workerSrc = workerSrc;
     loadDocuments();
     window.addEventListener('load', loadDocuments);

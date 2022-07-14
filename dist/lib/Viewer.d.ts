@@ -1,6 +1,8 @@
 import React from 'react';
-export declare const Viewer: React.FC<{
+declare type ViewerProps = {
     documentId: string;
     documentUrl: string;
     workerSrc: string;
-}>;
+};
+export declare const Viewer: React.FC<ViewerProps>;
+export {};
