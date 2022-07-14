@@ -9,7 +9,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json && npm run build-cjs",
+    "build": "tsc -p tsconfig.json && npm run build-cjs && npm run copy-worker",
     "build-cjs": "tsc -p tsconfig.commonjs.json",
     "copy-worker": "cp node_modules/pdfjs-dist/build/pdf.worker.min.js dist/worker/",
     "build-example": "npm run build && tsc -p tsconfig.example.json && npm run webpack",
@@ -19,8 +19,7 @@
     "lint": "npm run lint:no-fix -- --fix",
     "prepublishOnly": "npm run clean && npm run build && npm run test -- --ci --silent && npm run lint:no-fix -- --max-warnings 0",
     "test": "jest",
-    "test:watch": "jest --watch",
-    "postinstall": "npm run copy-worker"
+    "test:watch": "jest --watch"
   },
   "repository": {
     "type": "git",
