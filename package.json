@@ -13,7 +13,7 @@
     "build-no-copy": "npm run build-es2015 && npm run build-cjs",
     "build-cjs": "tsc -p tsconfig.commonjs.json",
     "build-es2015": "tsc -p tsconfig.json",
-    "copy-worker": "mkdir dist/worker && cp node_modules/pdfjs-dist/build/pdf.worker.min.js dist/worker/",
+    "copy-worker": "mkdir -p dist/worker && cp node_modules/pdfjs-dist/build/pdf.worker.min.js dist/worker/",
     "build-example": "npm run build && tsc -p tsconfig.example.json && webpack",
     "clean": "rimraf ./dist",
     "lint:no-fix": "eslint --config='.eslintrc.js' './src/*.{ts,tsx}' './test/*.{ts,tsx}'",
