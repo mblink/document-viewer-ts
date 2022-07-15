@@ -3,6 +3,7 @@ module.exports = {
     es6: true,
     node: true,
     jest: true,
+    browser: true,
   },
   extends: [
     "eslint:recommended",
@@ -11,12 +12,20 @@ module.exports = {
   parserOptions: {
     project: [
       "tsconfig.json",
+      "tsconfig.commonjs.json",
+      "tsconfig.example.json",
       "test/tsconfig.json"
     ],
   },
   plugins: [
     "@typescript-eslint",
   ],
+  globals: {
+    "NodeJS": true,
+    "pdfjsImageDecoders": false,
+    "pdfjsLib": false,
+    "pdfjsViewer": false,
+  },
   reportUnusedDisableDirectives: true,
   rules: {
     "@typescript-eslint/adjacent-overload-signatures": "warn",

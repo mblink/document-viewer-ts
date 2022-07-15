@@ -1,16 +1,20 @@
 {
-  "name": "document-viewer",
-  "version": "0.0.1",
-  "description": "Document viewer for React and vanilla JavaScript",
+  "name": "document-viewer-ts",
+  "version": "0.1.0",
+  "description": "PDF and MS Doc viewer written in TypeScript for React and vanilla JavaScript",
   "main": "dist/lib/index.js",
   "module": "dist/es2015/index.js",
   "types": "dist/es2015/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "styles"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json && tsc -p tsconfig.commonjs.json",
-    "clean": "rimraf ./dist",
+    "build": "npm run build-es2015 && npm run build-cjs",
+    "build-cjs": "tsc -p tsconfig.commonjs.json",
+    "build-es2015": "tsc -p tsconfig.json",
+    "build-example": "npm run build && tsc -p tsconfig.example.json && webpack",
+    "clean": "rimraf ./dist ./build",
     "lint:no-fix": "eslint --config='.eslintrc.js' './src/*.{ts,tsx}' './test/*.{ts,tsx}'",
     "lint": "npm run lint:no-fix -- --fix",
     "prepublishOnly": "npm run clean && npm run build && npm run test -- --ci --silent && npm run lint:no-fix -- --max-warnings 0",
@@ -26,7 +30,10 @@
     "viewer",
     "pdf",
     "doc",
-    "docx"
+    "docx",
+    "typescript",
+    "react",
+    "javascript"
   ],
   "contributors": [
     {
@@ -34,7 +41,8 @@
       "email": "jleider@users.noreply.github.com"
     },
     {
-      "name": "Kyle Sutton"
+      "name": "Kyle Sutton",
+      "email": "suttonkyle@users.noreply.github.com"
     }
   ],
   "license": "MIT",
@@ -43,23 +51,40 @@
   },
   "homepage": "https://github.com/mblink/document-viewer#readme",
   "devDependencies": {
-    "@testing-library/react-hooks": "~7.0.2",
+    "@testing-library/react-hooks": "^7.0.2",
     "@types/jest": "~27.4.1",
     "@types/react": "^16.8.0",
+    "@types/react-dom": "^16.8.0",
     "@typescript-eslint/eslint-plugin": "^5.27.1",
     "@typescript-eslint/parser": "^5.27.1",
+    "buffer": "~6.0.0",
+    "canvas": "~2.9.3",
+    "core-js": "~3.23.3",
     "eslint": "~8.10.0",
-    "jest": "~27.5.1",
+    "jest": "~28.1.1",
+    "jest-environment-jsdom": "~28.1.1",
+    "pdfjs-dist": "~2.14.305",
+    "process": "~0.11.10",
     "react": "^16.9.0",
+    "react-dom": "^16.9.0",
     "react-test-renderer": "~16.14.0",
-    "ts-jest": "~27.1.3",
-    "typescript": "^4.7.3"
+    "smoothscroll-polyfill": "~0.4.4",
+    "ts-jest": "~28.0.5",
+    "ts-node": "~10.4.0",
+    "typescript": "~4.6.2",
+    "webpack": "~5.11.1",
+    "webpack-cli": "~4.3.1"
   },
   "peerDependencies": {
-    "react": ">=16.8.0"
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0",
+    "pdfjs-dist": ">=2.14.0"
   },
   "peerDependenciesMeta": {
     "react": {
+      "optional": true
+    },
+    "react-dom": {
       "optional": true
     }
   }

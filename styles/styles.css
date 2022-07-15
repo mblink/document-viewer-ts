@@ -1,0 +1,89 @@
+div.viewerContainer {
+  background: linear-gradient(#ffffff,#edebe9);
+  border: 1px solid #e1e1e1;
+  display: flex;
+  height: 65vh;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
+div.canvasContainer {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  overflow: scroll;
+  width: 100%;
+}
+
+div.pageContainer {
+  filter: drop-shadow(0 0 3px #d2d5d8);
+  position: relative;
+  margin-bottom: 1rem;
+  margin-top: 1rem;
+}
+
+.textLayer {
+  bottom: 0;
+  color: transparent;
+  left: 0;
+  line-height: 1;
+  opacity: 0.5;
+  overflow: hidden;
+  position: absolute;
+  right: 0;
+  text-align: initial;
+  text-size-adjust: none;
+  top: 0;
+}
+
+.textLayer > span {
+  color: transparent;
+  cursor: text;
+  position: absolute;
+  transform-origin: 0% 0%;
+  white-space: pre;
+}
+
+.viewerControls {
+  align-items: center;
+  background-color: rgba(100, 100, 100, 0.75);
+  border-radius: 0.5rem;
+  bottom: 2rem;
+  color: white;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  left: 50%;
+  opacity: 0;
+  padding: 1rem;
+  position: absolute;
+  transform: translateX(-50%);
+  transition: opacity 300ms;
+  width: 20rem;
+  z-index: 999;
+}
+
+.viewerControls:hover {
+  opacity: 1;
+}
+
+.pageNumber {
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  font-family: sans-serif;
+  font-size: 0.75rem;
+  justify-content: space-between;
+  width: 5rem;
+}
+
+.viewerControls button {
+  align-items: center;
+  background-color: transparent;
+  border: none;
+  color: white;
+  display: flex;
+  justify-content: center;
+}

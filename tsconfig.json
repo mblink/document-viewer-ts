@@ -6,7 +6,10 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "jsx": "react",
-    "lib": ["es2015"],
+    "lib": [
+      "dom",
+      "es2015"
+    ],
     "module": "es2015",
     "moduleResolution": "node",
     "noEmitOnError": true,
@@ -21,7 +24,9 @@
     "outDir": "./dist/es2015",
     "sourceMap": true,
     "strict": true,
-    "target": "es5"
+    "target": "es2015"
   },
-  "include": ["src/*"]
+  "include": [
+    "src/*"
+  ]
 }
