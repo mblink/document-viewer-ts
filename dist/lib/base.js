@@ -43,20 +43,22 @@ const recalculatePDFPageBreaks = (documentId) => {
             return [...acc, breakPoint];
         }, []);
 };
-const scalePDFPage = (textLayerDiv, textContent, pdfPage, canvas, viewport) => {
+const scaleTextLayer = (textLayerDiv, textContent, pdfPage, canvas, viewport) => __awaiter(void 0, void 0, void 0, function* () {
     textLayerDiv.innerHTML = '';
+    const textLayerFragment = document.createDocumentFragment();
     const scale = pdfScale * (canvas.offsetWidth / viewport.width);
     const vs = pdfPage.getViewport({ scale });
     textLayerDiv.style.width = `${vs.width}px`;
     textLayerDiv.style.height = `${vs.height}px`;
-    (0, pdfjs_dist_1.renderTextLayer)({
+    yield (0, pdfjs_dist_1.renderTextLayer)({
         textContent,
-        container: textLayerDiv,
+        container: textLayerFragment,
         viewport: vs
-    });
-};
+    }).promise;
+    textLayerDiv.appendChild(textLayerFragment);
+});
 const scalePDF = (textLayerDiv, textContent, pdfPage, canvas, viewport, documentId) => {
-    scalePDFPage(textLayerDiv, textContent, pdfPage, canvas, viewport);
+    scaleTextLayer(textLayerDiv, textContent, pdfPage, canvas, viewport);
     recalculatePDFPageBreaks(documentId);
 };
 const renderPDF = (containerDiv, documentUrl) => __awaiter(void 0, void 0, void 0, function* () {
@@ -89,14 +91,14 @@ const renderPDF = (containerDiv, documentUrl) => __awaiter(void 0, void 0, void 
     zoomButton.className = 'zoomButton';
     const loadingTask = (0, pdfjs_dist_1.getDocument)(documentUrl);
     // handle updating page number on scroll
-    canvasContainer.onscroll = () => {
+    canvasContainer.addEventListener('scroll', () => {
         const pageNumber = getPage(canvasContainer.scrollTop);
         pageNumberDiv.textContent = `${pageNumber}`;
         if (!controlsDiv.style.opacity) {
             controlsDiv.style.opacity = '1';
             setTimeout(() => controlsDiv.removeAttribute('style'), 1000);
         }
-    };
+    });
     try {
         const pdfDocument = yield loadingTask.promise;
         // initial viewer setup
@@ -157,7 +159,7 @@ const renderPDF = (containerDiv, documentUrl) => __awaiter(void 0, void 0, void 
             textLayerDiv.className = 'textLayer';
             const textContent = yield pdfPage.getTextContent();
             pageContainer.appendChild(textLayerDiv);
-            scalePDFPage(textLayerDiv, textContent, pdfPage, canvas, viewport);
+            scaleTextLayer(textLayerDiv, textContent, pdfPage, canvas, viewport);
             // handle zoom in/out
             zoomButton.addEventListener('click', () => {
                 if (pageContainer.style.width === defaultWidth) {

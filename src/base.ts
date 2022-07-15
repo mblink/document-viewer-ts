@@ -51,7 +51,7 @@ const recalculatePDFPageBreaks = (documentId: string) => {
     );
 };
 
-const scalePDFPage = (
+const scaleTextLayer = async (
   textLayerDiv: HTMLDivElement,
   textContent: TextContent,
   pdfPage: PDFPageProxy,
@@ -59,15 +59,17 @@ const scalePDFPage = (
   viewport: PageViewport,
 ) => {
   textLayerDiv.innerHTML = '';
+  const textLayerFragment = document.createDocumentFragment();
   const scale =  pdfScale * (canvas.offsetWidth / viewport.width);
   const vs = pdfPage.getViewport({ scale });
   textLayerDiv.style.width = `${vs.width}px`;
   textLayerDiv.style.height = `${vs.height}px`;
-  renderTextLayer({
+  await renderTextLayer({
     textContent,
-    container: textLayerDiv as unknown as DocumentFragment,
+    container: textLayerFragment,
     viewport: vs
-  });
+  }).promise;
+  textLayerDiv.appendChild(textLayerFragment);
 };
 
 const scalePDF = (
@@ -78,7 +80,7 @@ const scalePDF = (
   viewport: PageViewport,
   documentId: string,
 ) => {
-  scalePDFPage(
+  scaleTextLayer(
     textLayerDiv,
     textContent,
     pdfPage,
@@ -122,14 +124,14 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
   const loadingTask = getDocument(documentUrl);
 
   // handle updating page number on scroll
-  canvasContainer.onscroll = () => {
+  canvasContainer.addEventListener('scroll', () => {
     const pageNumber = getPage(canvasContainer.scrollTop);
     pageNumberDiv.textContent = `${pageNumber}`;
     if (!controlsDiv.style.opacity) {
       controlsDiv.style.opacity = '1';
       setTimeout(() => controlsDiv.removeAttribute('style'), 1000);
     }
-  };
+  });
 
   try {
     const pdfDocument: PDFDocumentProxy = await loadingTask.promise;
@@ -197,7 +199,7 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
       textLayerDiv.className = 'textLayer';
       const textContent = await pdfPage.getTextContent();
       pageContainer.appendChild(textLayerDiv);
-      scalePDFPage(
+      scaleTextLayer(
         textLayerDiv,
         textContent,
         pdfPage,
