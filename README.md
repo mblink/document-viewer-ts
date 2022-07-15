@@ -3,7 +3,7 @@
 ## PDF and docx viewer for Vanilla JavaScript and React applications
 
 ### Example Usage
-If using webpack, copy `document-viewer/dist/worker/pdf.worker.min.js` to a local directory:
+If using webpack, copy `PATH/TO/NODE_MODULES/dist/worker/pdf.worker.min.js` to a local directory:
 
 `webpack.config.ts`
 ```

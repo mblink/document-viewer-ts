@@ -4,12 +4,12 @@ const path = require("path");
 module.exports = {
   context: __dirname,
   entry: {
-    example: "./dist/example/example.js",
+    example: "./build/example.js",
   },
   mode: "none",
   output: {
-    path: path.join(__dirname, "./dist/webpack"),
-    publicPath: "./dist/webpack/",
+    path: path.join(__dirname, "./build/"),
+    publicPath: "./build/",
     filename: "[name].bundle.js",
   },
   plugins: [
