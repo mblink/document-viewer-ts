@@ -1,5 +1,5 @@
 
-# BondLink Document Viewer (WIP)
+# Document Viewer
 ## PDF and docx viewer for Vanilla JavaScript and React applications
 
 ### Example Usage
