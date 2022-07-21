@@ -1,4 +1,4 @@
-div.viewerContainer {
+div.document-viewer-ts.viewerContainer {
   background: linear-gradient(#ffffff,#edebe9);
   border: 1px solid #e1e1e1;
   display: flex;
@@ -8,7 +8,7 @@ div.viewerContainer {
   width: 100%;
 }
 
-div.canvasContainer {
+.document-viewer-ts div.canvasContainer {
   align-items: center;
   display: flex;
   flex-direction: column;
@@ -17,14 +17,14 @@ div.canvasContainer {
   width: 100%;
 }
 
-div.pageContainer {
+.document-viewer-ts div.pageContainer {
   filter: drop-shadow(0 0 3px #d2d5d8);
   position: relative;
   margin-bottom: 1rem;
   margin-top: 1rem;
 }
 
-.textLayer {
+.document-viewer-ts .textLayer {
   bottom: 0;
   color: transparent;
   left: 0;
@@ -38,7 +38,7 @@ div.pageContainer {
   top: 0;
 }
 
-.textLayer > span {
+.document-viewer-ts .textLayer > span {
   color: transparent;
   cursor: text;
   position: absolute;
@@ -46,7 +46,7 @@ div.pageContainer {
   white-space: pre;
 }
 
-.viewerControls {
+.document-viewer-ts .viewerControls {
   align-items: center;
   background-color: rgba(100, 100, 100, 0.75);
   border-radius: 0.5rem;
@@ -65,11 +65,11 @@ div.pageContainer {
   z-index: 999;
 }
 
-.viewerControls:hover {
+.document-viewer-ts .viewerControls:hover {
   opacity: 1;
 }
 
-.pageNumber {
+.document-viewer-ts .pageNumber {
   align-items: center;
   display: flex;
   flex-direction: row;
@@ -79,7 +79,7 @@ div.pageContainer {
   width: 10rem;
 }
 
-.pageNumberInput {
+.document-viewer-ts .pageNumberInput {
   background-color: transparent;
   border: 1px solid rgba(255,255,255,0.5);
   color: white;
@@ -93,7 +93,7 @@ div.pageContainer {
   width: 4rem;
 }
 
-.viewerControls button {
+.document-viewer-ts .viewerControls button {
   align-items: center;
   background-color: transparent;
   border: none;
@@ -102,7 +102,7 @@ div.pageContainer {
   justify-content: center;
 }
 
-embed.txtEmbed {
+.document-viewer-ts embed.txtEmbed {
   height: 65vh;
   width: 100%;
 }
