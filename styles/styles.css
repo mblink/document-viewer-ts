@@ -56,7 +56,7 @@ div.pageContainer {
   flex-direction: row;
   justify-content: space-between;
   left: 50%;
-  opacity: 0;
+  opacity: 1;
   padding: 1rem;
   position: absolute;
   transform: translateX(-50%);
@@ -77,6 +77,18 @@ div.pageContainer {
   font-size: 0.75rem;
   justify-content: space-between;
   width: 5rem;
+}
+
+.pageNumberInput {
+  background-color: transparent;
+  border: 1px solid rgba(255,255,255,0.5);
+  color: white;
+  justify-content: left;
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+  min-width: 2rem;
+  text-align: left;
+  width: 100%;
 }
 
 .viewerControls button {

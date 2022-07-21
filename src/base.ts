@@ -1,13 +1,5 @@
 import { GlobalWorkerOptions, PDFDocumentProxy, PDFPageProxy, PageViewport, getDocument, renderTextLayer } from 'pdfjs-dist';
 import { TextContent } from 'pdfjs-dist/types/src/display/api';
-export interface ViewerWindow extends Window {
-  viewerState: {
-    [key: string]: {
-      pageBreaks: number[];
-      canvasElements: HTMLCanvasElement[];
-    };
-  };
-}
 
 const chevronLeft = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16">
 <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
@@ -33,23 +25,9 @@ const handleError = (containerDiv: Element) =>(err: unknown) => {
   containerDiv.append(errorDiv);
 };
 
-const vw = window as unknown as ViewerWindow;
-vw.viewerState = {};
-
 const pdfScale = 10;
 const zoomedWidth = '100%';
 const defaultWidth = '80%';
-
-const recalculatePDFPageBreaks = (documentId: string) => {
-  (vw.viewerState[documentId] || { pageBreaks: [] }).pageBreaks =
-    (vw.viewerState[documentId]?.canvasElements || []).reduce(
-      (acc: number[], curr: HTMLCanvasElement) => {
-        const breakPoint = (acc[(acc.length || 0) - 1] || - (curr.offsetHeight / 2 + 16)) + curr.offsetHeight + 32;
-        return [...acc, breakPoint];
-      },
-      []
-    );
-};
 
 const scaleTextLayer = async (
   textLayerDiv: HTMLDivElement,
@@ -72,37 +50,8 @@ const scaleTextLayer = async (
   textLayerDiv.appendChild(textLayerFragment);
 };
 
-const scalePDF = (
-  textLayerDiv: HTMLDivElement,
-  textContent: TextContent,
-  pdfPage: PDFPageProxy,
-  canvas: HTMLCanvasElement,
-  viewport: PageViewport,
-  documentId: string,
-) => {
-  scaleTextLayer(
-    textLayerDiv,
-    textContent,
-    pdfPage,
-    canvas,
-    viewport
-  );
-  recalculatePDFPageBreaks(documentId);
-};
-
 export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
   const documentId = containerDiv.id;
-  vw.viewerState[documentId] = {
-    pageBreaks: [],
-    canvasElements: [],
-  };
-
-  const getPageId = (pageNumber: number) => `${documentId}-page-${pageNumber}`;
-
-  const getPage = (scrollTop: number) => Math.min(
-    (vw.viewerState[documentId]?.pageBreaks.filter(b => b < scrollTop).length || 0) + 1,
-    vw.viewerState[documentId]?.pageBreaks.length || Infinity
-  );
 
   const canvasContainer = document.createElement('div');
   canvasContainer.className = 'canvasContainer';
@@ -110,8 +59,8 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
   controlsDiv.className = 'viewerControls';
   const fullPageNumberDiv = document.createElement('div');
   fullPageNumberDiv.className = 'pageNumber';
-  const pageNumberDiv = document.createElement('div');
-  pageNumberDiv.className = 'pageNumberRaw';
+  const pageNumberInput = document.createElement('input');
+  pageNumberInput.className = 'pageNumberInput';
   const pageDiv = document.createElement('div');
   const outOfDiv = document.createElement('div');
   const pageCountDiv = document.createElement('div');
@@ -123,69 +72,51 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
   zoomButton.className = 'zoomButton';
   const loadingTask = getDocument(documentUrl);
 
-  // handle updating page number on scroll
-  canvasContainer.addEventListener('scroll', () => {
-    const pageNumber = getPage(canvasContainer.scrollTop);
-    pageNumberDiv.textContent = `${pageNumber}`;
-    if (!controlsDiv.style.opacity) {
-      controlsDiv.style.opacity = '1';
-      setTimeout(() => controlsDiv.removeAttribute('style'), 1000);
-    }
-  });
-
   try {
     const pdfDocument: PDFDocumentProxy = await loadingTask.promise;
 
+    const isValidPage = (page: number) => page <= pdfDocument.numPages && page > 0;
+
     // initial viewer setup
-    pageNumberDiv.textContent = '1';
+    pageNumberInput.value = '1';
     pageDiv.textContent = 'Page ';
     outOfDiv.textContent = '/';
     pageCountDiv.textContent = `${pdfDocument.numPages}`;
     fullPageNumberDiv.appendChild(pageDiv);
-    fullPageNumberDiv.appendChild(pageNumberDiv);
+    fullPageNumberDiv.appendChild(pageNumberInput);
     fullPageNumberDiv.appendChild(outOfDiv);
     fullPageNumberDiv.appendChild(pageCountDiv);
 
-    const skipPage = (direction: number) => () => {
-      const pageNumber = parseInt(pageNumberDiv.textContent || '1');
-      const nextPageNumber = pageNumber + direction;
-      if (nextPageNumber <= pdfDocument.numPages && nextPageNumber > 0) {
-        const nextPage = getPageId(nextPageNumber);
-        canvasContainer.scrollTo({ top: (document.getElementById(nextPage)?.parentElement as HTMLElement).offsetTop });
-        pageNumberDiv.textContent = `${pageNumber + direction}`;
-      }
-    };
+    // page container setup
+    const pageContainer = document.createElement('div');
+    pageContainer.className = 'pageContainer';
+    pageContainer.style.width = defaultWidth;
+    canvasContainer.appendChild(pageContainer);
+    const canvas = document.createElement('canvas');
+    canvas.className ='pdfViewerCanvas';
+    canvas.id = `${documentId}-canvas`;
+    pageContainer.appendChild(canvas);
 
-    nextButton.onclick = skipPage(1);
-    prevButton.onclick = skipPage(-1);
+    // text layer setup
+    const textLayerDiv = document.createElement('div');
+    textLayerDiv.className = 'textLayer';
+    pageContainer.appendChild(textLayerDiv);
 
     nextButton.innerHTML = chevronRight;
     prevButton.innerHTML = chevronLeft;
 
     zoomButton.innerHTML = plusSvg;
+
     containerDiv.appendChild(controlsDiv);
     controlsDiv.appendChild(prevButton);
     controlsDiv.appendChild(fullPageNumberDiv);
     controlsDiv.appendChild(nextButton);
     controlsDiv.appendChild(zoomButton);
     containerDiv.appendChild(canvasContainer);
-    const canvasElements = [...Array(pdfDocument.numPages).keys()].map(page => {
-      const pageContainer = document.createElement('div');
-      pageContainer.className = 'pageContainer';
-      pageContainer.style.width = defaultWidth;
-      canvasContainer.appendChild(pageContainer);
-      const canvas = document.createElement('canvas');
-      canvas.className ='pdfViewerCanvas';
-      canvas.id = getPageId(page + 1);
-      pageContainer.appendChild(canvas);
-      return { pageContainer, canvas};
-    });
 
-    (vw.viewerState[documentId] || { canvasElements: [] }).canvasElements = canvasElements.map(({canvas}) => canvas);
-
-    // load pages simultaneously
-    await Promise.all(canvasElements.map(async ({pageContainer, canvas}, page) => {
-      const pdfPage = await pdfDocument.getPage(page + 1);
+    const displayPage = async (page: number) => {
+      pageNumberInput.value = `${page}`;
+      const pdfPage = await pdfDocument.getPage(page);
       const viewport = pdfPage.getViewport({ scale: pdfScale });
       canvas.width = viewport.width;
       canvas.height = viewport.height;
@@ -195,10 +126,7 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
         canvasContext: ctx || {},
         viewport,
       });
-      const textLayerDiv = document.createElement('div');
-      textLayerDiv.className = 'textLayer';
       const textContent = await pdfPage.getTextContent();
-      pageContainer.appendChild(textLayerDiv);
       scaleTextLayer(
         textLayerDiv,
         textContent,
@@ -206,9 +134,7 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
         canvas,
         viewport,
       );
-
-      // handle zoom in/out
-      zoomButton.addEventListener('click', () => {
+      zoomButton.onclick = () => {
         if (pageContainer.style.width === defaultWidth) {
           pageContainer.style.width = zoomedWidth;
           zoomButton.innerHTML = minusSvg;
@@ -216,30 +142,56 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
           pageContainer.style.width = defaultWidth;
           zoomButton.innerHTML = plusSvg;
         }
-        scalePDF(
+        scaleTextLayer(
           textLayerDiv,
           textContent,
           pdfPage,
           canvas,
           viewport,
-          documentId
         );
-      });
+      };
+    };
 
-      // make sure text selection layer and page breaks resize dynamically
-      window.addEventListener('resize', () => {
-        scalePDF(
-          textLayerDiv,
-          textContent,
-          pdfPage,
-          canvas,
-          viewport,
-          documentId
-        );
-      });
-    }));
+    const skipPage = (direction: number) => () => {
+      const pageNumber = parseInt(pageNumberInput.value || '1');
+      const nextPageNumber = pageNumber + direction;
+      if (isValidPage(nextPageNumber)) {
+        displayPage(nextPageNumber);
+      }
+    };
+    nextButton.onclick = skipPage(1);
+    prevButton.onclick = skipPage(-1);
 
-    recalculatePDFPageBreaks(documentId);
+    pageNumberInput.onchange = () => {
+      const pageNumber = Math.max(Math.min(parseInt(pageNumberInput.value), pdfDocument.numPages), 1);
+      displayPage(pageNumber);
+    };
+
+    pageNumberInput.addEventListener('click', (e) => e.stopPropagation());
+
+    containerDiv.addEventListener('keydown', (e) => {
+      e.stopPropagation();
+      switch((e as KeyboardEvent).key) {
+        case('ArrowLeft'):
+          skipPage(-1)();
+          return;
+        case('ArrowRight'):
+          skipPage(1)();
+          return;
+        default:
+          return;
+      }
+    });
+
+    containerDiv.addEventListener('click', () => {
+      (containerDiv as HTMLDivElement).focus();
+    });
+
+    containerDiv.setAttribute('tabIndex', '1');
+
+    (containerDiv as HTMLDivElement).focus();
+
+    await displayPage(1);
   } catch(err) {
     handleError(containerDiv)(err);
     return err;
