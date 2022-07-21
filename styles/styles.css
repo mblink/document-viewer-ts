@@ -106,3 +106,14 @@ div.document-viewer-ts.viewerContainer {
   height: 65vh;
   width: 100%;
 }
+
+.document-viewer-ts .viewerControls input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+.document-viewer-ts .viewerControls input[type=number] {
+  -moz-appearance: textfield;
+}

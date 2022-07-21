@@ -61,6 +61,7 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
   fullPageNumberDiv.className = 'pageNumber';
   const pageNumberInput = document.createElement('input');
   pageNumberInput.className = 'pageNumberInput';
+  pageNumberInput.type = 'number';
   const pageDiv = document.createElement('div');
   const outOfDiv = document.createElement('div');
   const pageCountDiv = document.createElement('div');
