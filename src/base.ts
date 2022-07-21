@@ -218,6 +218,7 @@ const renderTxt = (containerDiv: Element, documentUrl: string) => {
 export const renderDocument = (containerDiv: Element) => {
   try {
     const documentUrl = containerDiv.getAttribute('data-document-url');
+    containerDiv.classList.add('document-viewer-ts');
     if (!documentUrl) throw new Error('No document url specified');
     const splitOnPeriods = documentUrl.split('.');
     const extension = splitOnPeriods[(splitOnPeriods.length - 1)]?.split('?')[0];

@@ -1,6 +1,6 @@
 {
   "name": "document-viewer-ts",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "PDF and MS Doc viewer written in TypeScript for React and vanilla JavaScript",
   "main": "dist/lib/index.js",
   "module": "dist/es2015/index.js",
