@@ -1,3 +1,5 @@
+@namespace prefix "document-viewer-ts";
+
 div.viewerContainer {
   background: linear-gradient(#ffffff,#edebe9);
   border: 1px solid #e1e1e1;
@@ -76,19 +78,21 @@ div.pageContainer {
   font-family: sans-serif;
   font-size: 0.75rem;
   justify-content: space-between;
-  width: 5rem;
+  width: 10rem;
 }
 
 .pageNumberInput {
   background-color: transparent;
   border: 1px solid rgba(255,255,255,0.5);
   color: white;
+  font-size: 0.75rem;
+  height: 1.5rem;
   justify-content: left;
   margin-left: 0.5rem;
   margin-right: 0.5rem;
   min-width: 2rem;
   text-align: left;
-  width: 100%;
+  width: 4rem;
 }
 
 .viewerControls button {
