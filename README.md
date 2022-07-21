@@ -1,7 +1,23 @@
 
-# BondLink Document Viewer (WIP)
+# Document Viewer
 ## PDF and docx viewer for Vanilla JavaScript and React applications
 
+![license](https://img.shields.io/npm/l/document-viewer-ts)
+![npm](https://img.shields.io/npm/v/document-viewer-ts)
+![npm bundle size](https://img.shields.io/bundlephobia/minzip/document-viewer-ts)
+
+### Installation
+Requires peer dependency `pdfjs-dist` at version `2.14.0` or higher:
+
+```
+npm install pdfjs-dist
+```
+
+Install the package:
+
+```
+npm install document-viewer-ts
+```
 ### Example Usage
 If using webpack, copy `PATH/TO/NODE_MODULES/pdfjs-dist/build/pdf.worker.min.js` to a local directory:
 
