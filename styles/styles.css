@@ -99,3 +99,8 @@ div.pageContainer {
   display: flex;
   justify-content: center;
 }
+
+embed.txtEmbed {
+  height: 65vh;
+  width: 100%;
+}

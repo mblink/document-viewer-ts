@@ -208,18 +208,31 @@ const renderDocx = (containerDiv: Element, documentUrl: string) => {
   containerDiv.appendChild(microsoftViewer);
 };
 
+const renderTxt = (containerDiv: Element, documentUrl: string) => {
+  const embed = document.createElement('embed');
+  embed.className = 'txtEmbed';
+  embed.setAttribute('src', documentUrl);
+  containerDiv.appendChild(embed);
+};
+
 export const renderDocument = (containerDiv: Element) => {
   try {
     const documentUrl = containerDiv.getAttribute('data-document-url');
     if (!documentUrl) throw new Error('No document url specified');
     const splitOnPeriods = documentUrl.split('.');
     const extension = splitOnPeriods[(splitOnPeriods.length - 1)]?.split('?')[0];
-    if (extension === 'pdf') {
-      renderPDF(containerDiv, documentUrl);
-    } else if (extension === 'doc' || extension === 'docx') {
-      renderDocx(containerDiv, documentUrl);
-    } else {
-      throw new Error('Unsupported file type');
+    switch(extension) {
+      case 'pdf':
+        renderPDF(containerDiv, documentUrl);
+        return;
+      case 'doc': case 'docx': case 'ppt': case 'pptx': case 'xls': case 'xlsx': case 'xlt': case 'xlsm': case 'xlw': case 'pps': case 'ppxs': case 'ppsm': case 'sldx': case 'sldm':
+        renderDocx(containerDiv, documentUrl);
+        return;
+      case 'txt':
+        renderTxt(containerDiv, documentUrl);
+        return;
+      default:
+        throw new Error('This file type is not supported for viewing in a web browser. Please click the “Download” button to view this document.');
     }
   } catch(err) {
     handleError(containerDiv)(err);
