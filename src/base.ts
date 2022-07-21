@@ -150,6 +150,16 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
           viewport,
         );
       };
+
+      window.addEventListener('resize', () => {
+        scaleTextLayer(
+          textLayerDiv,
+          textContent,
+          pdfPage,
+          canvas,
+          viewport,
+        );
+      });
     };
 
     const skipPage = (direction: number) => () => {
