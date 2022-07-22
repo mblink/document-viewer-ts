@@ -56,7 +56,7 @@ import { init } from 'document-viewer'
 init("PATH/TO/WORKER/FILE");
 ```
 
-Wherever you want to include a document viewer in the HTML, include a `<div />` with `class="viewerContainer"` and `id` being some unique key (on the page) and `data-document-url` being the url of the document you want to display. Also make sure you're importing `styles.css` from the package in your HTML head.
+Wherever you want to include a document viewer in the HTML, include a `<div />` with `class="viewer-container"` and `id` being some unique key (on the page) and `data-document-url` being the url of the document you want to display. Also make sure you're importing `styles.css` from the package in your HTML head.
 
 `index.html`
 ```
@@ -68,7 +68,7 @@ Wherever you want to include a document viewer in the HTML, include a `<div />` 
     <link rel="stylesheet" href="../node_modules/document-viewer/dist/styles/styles.css"></link>
   </head>
   <body>
-    <div class="viewerContainer" id="doc-1" data-document-url="https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf"></div>
+    <div class="viewer-container" id="doc-1" data-document-url="https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf"></div>
   </body>
 </html>
 ```
