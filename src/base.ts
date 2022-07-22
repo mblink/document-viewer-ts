@@ -50,31 +50,44 @@ const scaleTextLayer = async (
   textLayerDiv.appendChild(textLayerFragment);
 };
 
+const createLoadingIndicator = () => {
+  const container = document.createElement('div');
+  container.className = 'indicator-container';
+  const indicator = document.createElement('div');
+  indicator.className = 'lds-ring';
+  indicator.innerHTML = '<div></div><div></div><div></div><div></div></div>';
+  container.appendChild(indicator);
+  return container;
+};
+
 export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
+  const loadingIndicator = createLoadingIndicator();
+  containerDiv.appendChild(loadingIndicator);
   const documentId = containerDiv.id;
 
   const canvasContainer = document.createElement('div');
-  canvasContainer.className = 'canvasContainer';
+  canvasContainer.className = 'canvas-container';
   const controlsDiv = document.createElement('div');
-  controlsDiv.className = 'viewerControls';
+  controlsDiv.className = 'viewer-controls';
   const fullPageNumberDiv = document.createElement('div');
-  fullPageNumberDiv.className = 'pageNumber';
+  fullPageNumberDiv.className = 'page-number';
   const pageNumberInput = document.createElement('input');
-  pageNumberInput.className = 'pageNumberInput';
+  pageNumberInput.className = 'page-number-input';
   pageNumberInput.type = 'number';
   const pageDiv = document.createElement('div');
   const outOfDiv = document.createElement('div');
   const pageCountDiv = document.createElement('div');
   const nextButton = document.createElement('button');
-  nextButton.className = 'nextButton';
+  nextButton.className = 'next-button';
   const prevButton = document.createElement('button');
-  prevButton.className = 'prevButton';
+  prevButton.className = 'prev-button';
   const zoomButton = document.createElement('button');
   zoomButton.className = 'zoomButton';
   const loadingTask = getDocument(documentUrl);
 
   try {
     const pdfDocument: PDFDocumentProxy = await loadingTask.promise;
+    containerDiv.removeChild(loadingIndicator);
 
     const isValidPage = (page: number) => page <= pdfDocument.numPages && page > 0;
 
@@ -90,17 +103,17 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
 
     // page container setup
     const pageContainer = document.createElement('div');
-    pageContainer.className = 'pageContainer';
+    pageContainer.className = 'page-container';
     pageContainer.style.width = defaultWidth;
     canvasContainer.appendChild(pageContainer);
     const canvas = document.createElement('canvas');
-    canvas.className ='pdfViewerCanvas';
+    canvas.className ='pdf-viewer-canvas';
     canvas.id = `${documentId}-canvas`;
     pageContainer.appendChild(canvas);
 
     // text layer setup
     const textLayerDiv = document.createElement('div');
-    textLayerDiv.className = 'textLayer';
+    textLayerDiv.className = 'text-layer';
     pageContainer.appendChild(textLayerDiv);
 
     nextButton.innerHTML = chevronRight;
@@ -221,7 +234,7 @@ const renderDocx = (containerDiv: Element, documentUrl: string) => {
 
 const renderTxt = (containerDiv: Element, documentUrl: string) => {
   const embed = document.createElement('embed');
-  embed.className = 'txtEmbed';
+  embed.className = 'txt-embed';
   embed.setAttribute('src', documentUrl);
   containerDiv.appendChild(embed);
 };

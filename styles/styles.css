@@ -8,7 +8,7 @@ div.document-viewer-ts.viewerContainer {
   width: 100%;
 }
 
-.document-viewer-ts div.canvasContainer {
+.document-viewer-ts div.canvas-container {
   align-items: center;
   display: flex;
   flex-direction: column;
@@ -17,14 +17,14 @@ div.document-viewer-ts.viewerContainer {
   width: 100%;
 }
 
-.document-viewer-ts div.pageContainer {
+.document-viewer-ts div.page-container {
   filter: drop-shadow(0 0 3px #d2d5d8);
   position: relative;
   margin-bottom: 1rem;
   margin-top: 1rem;
 }
 
-.document-viewer-ts .textLayer {
+.document-viewer-ts .text-layer {
   bottom: 0;
   color: transparent;
   left: 0;
@@ -38,7 +38,7 @@ div.document-viewer-ts.viewerContainer {
   top: 0;
 }
 
-.document-viewer-ts .textLayer > span {
+.document-viewer-ts .text-layer > span {
   color: transparent;
   cursor: text;
   position: absolute;
@@ -46,7 +46,7 @@ div.document-viewer-ts.viewerContainer {
   white-space: pre;
 }
 
-.document-viewer-ts .viewerControls {
+.document-viewer-ts .viewer-controls {
   align-items: center;
   background-color: rgba(100, 100, 100, 0.75);
   border-radius: 0.5rem;
@@ -65,11 +65,11 @@ div.document-viewer-ts.viewerContainer {
   z-index: 999;
 }
 
-.document-viewer-ts .viewerControls:hover {
+.document-viewer-ts .viewer-controls:hover {
   opacity: 1;
 }
 
-.document-viewer-ts .pageNumber {
+.document-viewer-ts .page-number {
   align-items: center;
   display: flex;
   flex-direction: row;
@@ -79,7 +79,7 @@ div.document-viewer-ts.viewerContainer {
   width: 10rem;
 }
 
-.document-viewer-ts .pageNumberInput {
+.document-viewer-ts .page-number-input {
   background-color: transparent;
   border: 1px solid rgba(255,255,255,0.5);
   color: white;
@@ -93,7 +93,7 @@ div.document-viewer-ts.viewerContainer {
   width: 4rem;
 }
 
-.document-viewer-ts .viewerControls button {
+.document-viewer-ts .viewer-controls button {
   align-items: center;
   background-color: transparent;
   border: none;
@@ -102,18 +102,71 @@ div.document-viewer-ts.viewerContainer {
   justify-content: center;
 }
 
-.document-viewer-ts embed.txtEmbed {
+.document-viewer-ts embed.txt-embed {
   height: 65vh;
   width: 100%;
 }
 
-.document-viewer-ts .viewerControls input::-webkit-outer-spin-button,
+.document-viewer-ts .viewer-controls input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
 /* Firefox */
-.document-viewer-ts .viewerControls input[type=number] {
+.document-viewer-ts .viewer-controls input[type=number] {
   -moz-appearance: textfield;
+}
+
+/* loading indicator */
+.document-viewer-ts .indicator-container {
+  align-items: center;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.document-viewer-ts .lds-ring {
+  display: inline-block;
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.document-viewer-ts .lds-ring div {
+  box-sizing: border-box;
+  display: block;
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  margin: 8px;
+  border: 8px solid #888;
+  border-radius: 50%;
+  animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  border-color: #888 transparent transparent transparent;
+}
+
+.document-viewer-ts .lds-ring div:nth-child(1) {
+  animation-delay: -0.45s;
+}
+
+.document-viewer-ts .lds-ring div:nth-child(2) {
+  animation-delay: -0.3s;
+}
+
+.document-viewer-ts .lds-ring div:nth-child(3) {
+  animation-delay: -0.15s;
+}
+
+@keyframes lds-ring {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
