@@ -7,7 +7,7 @@ describe('test pdf viewer', () => {
   const documentUrl = 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf';
   GlobalWorkerOptions.workerSrc = '../../../node_modules/pdfjs-dist/legacy/build/pdf.worker.min.js'; // legacy worker to handle jsdom
   const containerDiv = document.createElement('div');
-  containerDiv.className = 'viewerContainer';
+  containerDiv.className = 'viewer-container';
   containerDiv.setAttribute('id', documentId);
   containerDiv.setAttribute('data-document-url', documentUrl);
   document.body.appendChild(containerDiv);

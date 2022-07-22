@@ -82,7 +82,7 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
   const prevButton = document.createElement('button');
   prevButton.className = 'prev-button';
   const zoomButton = document.createElement('button');
-  zoomButton.className = 'zoomButton';
+  zoomButton.className = 'zoom-button';
   const loadingTask = getDocument(documentUrl);
 
   try {
@@ -265,7 +265,7 @@ export const renderDocument = (containerDiv: Element) => {
 };
 
 const loadDocuments = () => {
-  const containerDivs = document.getElementsByClassName('viewerContainer');
+  const containerDivs = document.getElementsByClassName('viewer-container');
   Array.from(containerDivs).forEach(renderDocument);
 };
 
