@@ -14,7 +14,7 @@ export const Viewer: React.FC<ViewerProps> = (props: ViewerProps) => {
   useEffect(() => { viewerContainer.current && renderDocument(viewerContainer.current); }, []);
   return <div
     ref={viewerContainer}
-    className="viewerContainer"
+    className="viewer-container"
     id={props.documentId}
     data-document-url={props.documentUrl}
   />;
