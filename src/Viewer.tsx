@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { GlobalWorkerOptions } from 'pdfjs-dist';
+import { GlobalWorkerOptions } from 'pdfjs-dist/legacy/build/pdf';
 import { renderDocument } from './base';
 
 type ViewerProps = {
