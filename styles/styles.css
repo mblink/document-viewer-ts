@@ -170,3 +170,14 @@ input::-webkit-inner-spin-button {
     transform: rotate(360deg);
   }
 }
+
+.document-viewer-ts .error-message {
+  color: #888;
+  font-family: sans-serif;
+  font-weight: 600;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 25vh;
+  text-align: center;
+  width: 80%;
+}

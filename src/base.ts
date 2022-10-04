@@ -19,10 +19,8 @@ const minusSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://ww
 <polygon opacity=".85" enable-background="new" points="9 8 8 8 6 8 6 9 8 9 9 9 11 9 11 8"/>
 </g></svg>`;
 
-const handleError = (containerDiv: Element) =>(err: unknown) => {
-  const errorDiv = document.createElement('div');
-  errorDiv.textContent = `There was an error fetching your document. Please try again later. Error: ${err}`;
-  containerDiv.append(errorDiv);
+const handleError = (containerDiv: Element) => (err: unknown) => {
+  renderErrorMessage(containerDiv)(`There was an error fetching your document. Please try again later. Error: ${err}`);
 };
 
 const pdfScale = 10;
@@ -239,6 +237,13 @@ const renderTxt = (containerDiv: Element, documentUrl: string) => {
   containerDiv.appendChild(embed);
 };
 
+const renderErrorMessage = (containerDiv: Element) => (errorMessage: string) => {
+  const errorDiv = document.createElement('div');
+  errorDiv.className = 'error-message';
+  errorDiv.textContent = errorMessage;
+  containerDiv.appendChild(errorDiv);
+};
+
 export const renderDocument = (containerDiv: Element) => {
   try {
     const documentUrl = containerDiv.getAttribute('data-document-url');
@@ -248,7 +253,13 @@ export const renderDocument = (containerDiv: Element) => {
     const extension = splitOnPeriods[(splitOnPeriods.length - 1)]?.split('?')[0];
     switch(extension) {
       case 'pdf':
-        renderPDF(containerDiv, documentUrl);
+        try {
+          (() => globalThis)();
+          new File([], 'test.txt');
+          renderPDF(containerDiv, documentUrl);
+        } catch (err) {
+          renderErrorMessage(containerDiv)('Your browser does not support showing PDF previews. Click the download button to view this document.');
+        }
         return;
       case 'doc': case 'docx': case 'ppt': case 'pptx': case 'xls': case 'xlsx': case 'xlt': case 'xlsm': case 'xlw': case 'pps': case 'ppxs': case 'ppsm': case 'sldx': case 'sldm':
         renderDocx(containerDiv, documentUrl);
