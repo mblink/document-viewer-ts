@@ -25,6 +25,7 @@ module.exports = {
     "pdfjsImageDecoders": false,
     "pdfjsLib": false,
     "pdfjsViewer": false,
+    "globalThis": false,
   },
   reportUnusedDisableDirectives: true,
   rules: {
