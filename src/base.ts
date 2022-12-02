@@ -9,23 +9,15 @@ const chevronRight = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height=
 <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
 </svg>`;
 
-const plusSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="16" height="16"><g xmlns="http://www.w3.org/2000/svg" fill="#fff">
-<polygon opacity=".85" enable-background="new" points="9 8 9 6 8 6 8 8 6 8 6 9 8 9 8 11 9 11 9 9 11 9 11 8"/>
-<path d="m16.742 15.501l-2.742-2.743h-0.643l-0.684-0.683c0.827-0.962 1.327-2.209 1.327-3.575 0-3.038-2.463-5.5-5.5-5.5s-5.5 2.462-5.5 5.5 2.463 5.5 5.5 5.5c1.367 0 2.613-0.501 3.576-1.327l0.684 0.683v0.644l2.742 2.742c0.342 0.343 0.896 0.344 1.24 0.001 0.344-0.345 0.344-0.898 0-1.242zm-8.242-3.301c-2.044 0-3.7-1.657-3.7-3.7s1.656-3.7 3.7-3.7c2.043 0 3.699 1.657 3.699 3.7s-1.656 3.7-3.699 3.7z"/>
-</g></svg>`;
-
-const minusSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="16" height="16"><g xmlns="http://www.w3.org/2000/svg" fill="#fff">
-<path d="m16.742 15.501l-2.742-2.743h-0.643l-0.684-0.684c0.827-0.961 1.327-2.208 1.327-3.574 0-3.037-2.463-5.5-5.5-5.5s-5.5 2.463-5.5 5.5 2.463 5.5 5.5 5.5c1.367 0 2.613-0.502 3.576-1.326l0.684 0.682v0.644l2.742 2.742c0.342 0.343 0.896 0.344 1.24 0.001 0.344-0.345 0.344-0.898 0-1.242zm-8.242-3.301c-2.044 0-3.7-1.657-3.7-3.7s1.656-3.7 3.7-3.7c2.043 0 3.699 1.657 3.699 3.7s-1.656 3.7-3.699 3.7z"/>
-<polygon opacity=".85" enable-background="new" points="9 8 8 8 6 8 6 9 8 9 9 9 11 9 11 8"/>
-</g></svg>`;
-
 const handleError = (containerDiv: Element) => (err: unknown) => {
   renderErrorMessage(containerDiv)(`There was an error fetching your document. Please try again later. Error: ${err}`);
 };
 
-const pdfScale = 10;
-const zoomedWidth = '100%';
-const defaultWidth = '80%';
+const zoomValues = [50, 80, 100, 125, 150, 200, 300, 400];
+const defaultWidth = 80;
+
+const PDFtoCSSConvert = 96 / 72;
+const defaultPageWidth = 700;
 
 const scaleTextLayer = async (
   textLayerDiv: HTMLDivElement,
@@ -33,6 +25,7 @@ const scaleTextLayer = async (
   pdfPage: PDFPageProxy,
   canvas: HTMLCanvasElement,
   viewport: PageViewport,
+  pdfScale: number,
 ) => {
   textLayerDiv.innerHTML = '';
   const textLayerFragment = document.createDocumentFragment();
@@ -79,9 +72,23 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
   nextButton.className = 'next-button';
   const prevButton = document.createElement('button');
   prevButton.className = 'prev-button';
-  const zoomButton = document.createElement('button');
-  zoomButton.className = 'zoom-button';
   const loadingTask = getDocument(documentUrl);
+
+  const zoomSelect = document.createElement('select');
+  zoomSelect.className = 'zoom-select';
+  zoomValues.forEach((v) => {
+    const zoomOption = document.createElement('option');
+    zoomOption.value = `${v}`;
+    zoomOption.textContent = `${v}%`;
+    zoomSelect.appendChild(zoomOption);
+  });
+  zoomSelect.value=`${defaultWidth}`;
+
+  const getZoomVal  = () => {
+    const pageWidth = (containerDiv as HTMLElement).offsetWidth * (parseInt(zoomSelect.value) / 100);
+    const scaledBy = pageWidth / defaultPageWidth * PDFtoCSSConvert;
+    return scaledBy * 2.5;
+  };
 
   try {
     const pdfDocument: PDFDocumentProxy = await loadingTask.promise;
@@ -102,7 +109,8 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
     // page container setup
     const pageContainer = document.createElement('div');
     pageContainer.className = 'page-container';
-    pageContainer.style.width = defaultWidth;
+    pageContainer.style.width = `${defaultWidth}%`;
+    canvasContainer.style.alignItems = 'center';
     canvasContainer.appendChild(pageContainer);
     const canvas = document.createElement('canvas');
     canvas.className ='pdf-viewer-canvas';
@@ -117,23 +125,23 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
     nextButton.innerHTML = chevronRight;
     prevButton.innerHTML = chevronLeft;
 
-    zoomButton.innerHTML = plusSvg;
 
     containerDiv.appendChild(controlsDiv);
     controlsDiv.appendChild(prevButton);
     controlsDiv.appendChild(fullPageNumberDiv);
     controlsDiv.appendChild(nextButton);
-    controlsDiv.appendChild(zoomButton);
+    controlsDiv.appendChild(zoomSelect);
     containerDiv.appendChild(canvasContainer);
 
-    const displayPage = async (page: number) => {
+    const displayPage = async (page: number, scale: number) => {
       pageNumberInput.value = `${page}`;
       const pdfPage = await pdfDocument.getPage(page);
-      const viewport = pdfPage.getViewport({ scale: pdfScale });
+      const viewport = pdfPage.getViewport({ scale });
       canvas.width = viewport.width;
       canvas.height = viewport.height;
       canvas.style.width = '100%';
       const ctx = canvas.getContext('2d');
+      ctx?.fillRect(0, 0, canvas.width, canvas.height);
       await pdfPage.render({
         canvasContext: ctx || {},
         viewport,
@@ -145,23 +153,8 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
         pdfPage,
         canvas,
         viewport,
+        getZoomVal(),
       );
-      zoomButton.onclick = () => {
-        if (pageContainer.style.width === defaultWidth) {
-          pageContainer.style.width = zoomedWidth;
-          zoomButton.innerHTML = minusSvg;
-        } else {
-          pageContainer.style.width = defaultWidth;
-          zoomButton.innerHTML = plusSvg;
-        }
-        scaleTextLayer(
-          textLayerDiv,
-          textContent,
-          pdfPage,
-          canvas,
-          viewport,
-        );
-      };
 
       window.addEventListener('resize', () => {
         scaleTextLayer(
@@ -170,15 +163,28 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
           pdfPage,
           canvas,
           viewport,
+          getZoomVal(),
         );
       });
+    };
+
+    zoomSelect.onchange = async () => {
+      const pageNumber = parseInt(pageNumberInput.value || '1');
+      const zoomVal = parseInt(zoomSelect.value);
+      pageContainer.style.width = `${zoomSelect.value}%`;
+      if (zoomVal > 100) {
+        canvasContainer.style.alignItems = 'flex-start';
+      } else {
+        canvasContainer.style.alignItems = 'center';
+      }
+      await displayPage(pageNumber, getZoomVal());
     };
 
     const skipPage = (direction: number) => () => {
       const pageNumber = parseInt(pageNumberInput.value || '1');
       const nextPageNumber = pageNumber + direction;
       if (isValidPage(nextPageNumber)) {
-        displayPage(nextPageNumber);
+        displayPage(nextPageNumber, getZoomVal());
       }
     };
     nextButton.onclick = skipPage(1);
@@ -186,10 +192,11 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
 
     pageNumberInput.onchange = () => {
       const pageNumber = Math.max(Math.min(parseInt(pageNumberInput.value), pdfDocument.numPages), 1);
-      displayPage(pageNumber);
+      displayPage(pageNumber, getZoomVal());
     };
 
     pageNumberInput.addEventListener('click', (e) => e.stopPropagation());
+    zoomSelect.addEventListener('click', (e) => e.stopPropagation());
 
     containerDiv.addEventListener('keydown', (e) => {
       e.stopPropagation();
@@ -213,7 +220,7 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
 
     (containerDiv as HTMLDivElement).focus();
 
-    await displayPage(1);
+    await displayPage(1, getZoomVal());
   } catch(err) {
     handleError(containerDiv)(err);
     return err;
