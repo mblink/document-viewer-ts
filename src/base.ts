@@ -251,7 +251,7 @@ const renderErrorMessage = (containerDiv: Element) => (errorMessage: string) => 
   containerDiv.appendChild(errorDiv);
 };
 
-export const renderDocument = (containerDiv: Element) => {
+export const renderDocument = (workerSrc: string) => (containerDiv: Element) => {
   try {
     const documentUrl = containerDiv.getAttribute('data-document-url');
     containerDiv.classList.add('document-viewer-ts');
@@ -263,6 +263,7 @@ export const renderDocument = (containerDiv: Element) => {
         try {
           (() => globalThis)();
           new File([], 'test.txt');
+          GlobalWorkerOptions.workerSrc = workerSrc;
           renderPDF(containerDiv, documentUrl);
         } catch (err) {
           renderErrorMessage(containerDiv)('Your browser does not support showing PDF previews. Click the download button to view this document.');
@@ -282,13 +283,13 @@ export const renderDocument = (containerDiv: Element) => {
   }
 };
 
-const loadDocuments = () => {
+const loadDocuments = (workerSrc: string) => () => {
   const containerDivs = document.getElementsByClassName('viewer-container');
-  Array.from(containerDivs).forEach(renderDocument);
+  Array.from(containerDivs).forEach(renderDocument(workerSrc));
 };
 
 export const init = (workerSrc: string) => {
   GlobalWorkerOptions.workerSrc = workerSrc;
-  loadDocuments();
-  window.addEventListener('load', loadDocuments);
+  loadDocuments(workerSrc)();
+  window.addEventListener('load', loadDocuments(workerSrc));
 };
