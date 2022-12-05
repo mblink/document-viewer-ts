@@ -9,7 +9,6 @@ div.document-viewer-ts.viewer-container {
 }
 
 .document-viewer-ts div.canvas-container {
-  align-items: center;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -79,7 +78,8 @@ div.document-viewer-ts.viewer-container {
   width: 10rem;
 }
 
-.document-viewer-ts .page-number-input {
+.document-viewer-ts .page-number-input,
+.document-viewer-ts select {
   background-color: transparent;
   border: 1px solid rgba(255,255,255,0.5);
   color: white;
