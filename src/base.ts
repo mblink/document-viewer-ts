@@ -141,7 +141,6 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
       canvas.height = viewport.height;
       canvas.style.width = '100%';
       const ctx = canvas.getContext('2d');
-      ctx?.fillRect(0, 0, canvas.width, canvas.height);
       await pdfPage.render({
         canvasContext: ctx || {},
         viewport,
@@ -289,7 +288,6 @@ const loadDocuments = (workerSrc: string) => () => {
 };
 
 export const init = (workerSrc: string) => {
-  GlobalWorkerOptions.workerSrc = workerSrc;
   loadDocuments(workerSrc)();
   window.addEventListener('load', loadDocuments(workerSrc));
 };
