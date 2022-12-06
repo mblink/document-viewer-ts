@@ -1,5 +1,4 @@
 import React, { useEffect, useRef } from 'react';
-import { GlobalWorkerOptions } from 'pdfjs-dist';
 import { renderDocument } from './base';
 
 type ViewerProps = {
@@ -9,10 +8,9 @@ type ViewerProps = {
 };
 
 export const Viewer: React.FC<ViewerProps> = (props: ViewerProps) => {
-  GlobalWorkerOptions.workerSrc = props.workerSrc;
   const viewerContainer = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    viewerContainer.current && renderDocument(viewerContainer.current);
+    viewerContainer.current && renderDocument(props.workerSrc)(viewerContainer.current);
 
     return () => {
       viewerContainer.current && viewerContainer.current.firstElementChild && viewerContainer.current.removeChild(viewerContainer.current.firstElementChild);
