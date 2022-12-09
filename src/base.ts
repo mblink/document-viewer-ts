@@ -52,8 +52,11 @@ const createLoadingIndicator = () => {
 };
 
 export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
+  const wrapperDiv = document.createElement('div');
+  wrapperDiv.className = 'wrapper';
+  containerDiv.appendChild(wrapperDiv);
   const loadingIndicator = createLoadingIndicator();
-  containerDiv.appendChild(loadingIndicator);
+  wrapperDiv.appendChild(loadingIndicator);
   const documentId = containerDiv.id;
 
   const canvasContainer = document.createElement('div');
@@ -92,7 +95,7 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
 
   try {
     const pdfDocument: PDFDocumentProxy = await loadingTask.promise;
-    containerDiv.removeChild(loadingIndicator);
+    wrapperDiv.removeChild(loadingIndicator);
 
     const isValidPage = (page: number) => page <= pdfDocument.numPages && page > 0;
 
@@ -126,12 +129,12 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
     prevButton.innerHTML = chevronLeft;
 
 
-    containerDiv.appendChild(controlsDiv);
+    wrapperDiv.appendChild(controlsDiv);
     controlsDiv.appendChild(prevButton);
     controlsDiv.appendChild(fullPageNumberDiv);
     controlsDiv.appendChild(nextButton);
     controlsDiv.appendChild(zoomSelect);
-    containerDiv.appendChild(canvasContainer);
+    wrapperDiv.appendChild(canvasContainer);
 
     const displayPage = async (page: number, scale: number) => {
       pageNumberInput.value = `${page}`;
