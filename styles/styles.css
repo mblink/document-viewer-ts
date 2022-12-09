@@ -8,11 +8,15 @@ div.document-viewer-ts.viewer-container {
   width: 100%;
 }
 
+.document-viewer-ts div.wrapper {
+  overflow: scroll;
+}
+
+
 .document-viewer-ts div.canvas-container {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  overflow: scroll;
   width: 100%;
 }
 
