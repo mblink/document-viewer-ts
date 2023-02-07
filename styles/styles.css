@@ -50,6 +50,11 @@ div.document-viewer-ts.viewer-container {
   white-space: pre;
 }
 
+.document-viewer-ts .text-layer ::selection {
+  background-color: Highlight;
+  color: transparent;
+}
+
 .document-viewer-ts .viewer-controls {
   align-items: center;
   background-color: rgba(100, 100, 100, 0.75);
