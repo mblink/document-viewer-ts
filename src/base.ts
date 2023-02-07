@@ -155,7 +155,7 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
         pdfPage,
         canvas,
         viewport,
-        getZoomVal(),
+        scale,
       );
 
       window.addEventListener('resize', () => {
@@ -165,7 +165,7 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
           pdfPage,
           canvas,
           viewport,
-          getZoomVal(),
+          scale,
         );
       });
     };
