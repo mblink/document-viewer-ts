@@ -51,7 +51,7 @@ div.document-viewer-ts.viewer-container {
 }
 
 .document-viewer-ts .text-layer ::selection {
-  background-color: rgba(102, 136, 257, 0.5);
+  background-color: Highlight;
   color: transparent;
 }
 
