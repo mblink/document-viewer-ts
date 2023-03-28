@@ -259,7 +259,7 @@ export const renderDocument = (workerSrc: string) => (containerDiv: Element) => 
     containerDiv.classList.add('document-viewer-ts');
     if (!documentUrl) throw new Error('No document url specified');
     const splitOnPeriods = documentUrl.split('.');
-    const extension = splitOnPeriods[(splitOnPeriods.length - 1)]?.split('?')[0];
+    const extension = splitOnPeriods[(splitOnPeriods.length - 1)]?.split('?')[0]?.toLowerCase();
     switch(extension) {
       case 'pdf':
         try {
