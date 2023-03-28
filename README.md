@@ -1,6 +1,6 @@
 
 # Document Viewer
-## PDF and docx viewer for Vanilla JavaScript and React applications
+## PDF and DOCX viewer for Vanilla JavaScript and React applications
 
 ![license](https://img.shields.io/npm/l/document-viewer-ts)
 ![npm](https://img.shields.io/npm/v/document-viewer-ts)
