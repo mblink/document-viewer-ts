@@ -28,13 +28,14 @@ const scaleTextLayer = async (
   pdfScale: number,
 ) => {
   textLayerDiv.innerHTML = '';
-  const textLayerFragment = document.createDocumentFragment();
+  const textLayerFragment = document.createElement('div');
+  textLayerFragment.className = 'textLayer';
   const scale =  pdfScale * (canvas.offsetWidth / viewport.width);
   const vs = pdfPage.getViewport({ scale });
   textLayerDiv.style.width = `${vs.width}px`;
   textLayerDiv.style.height = `${vs.height}px`;
   await renderTextLayer({
-    textContent,
+    textContentSource: textContent,
     container: textLayerFragment,
     viewport: vs
   }).promise;
@@ -87,10 +88,12 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
   });
   zoomSelect.value=`${defaultWidth}`;
 
-  const getZoomVal  = () => {
+  const getZoomVal  = (originalPageWidth: number) => {
     const pageWidth = (containerDiv as HTMLElement).offsetWidth * (parseInt(zoomSelect.value) / 100);
-    const scaledBy = pageWidth / defaultPageWidth * PDFtoCSSConvert;
-    return scaledBy * 2.5;
+    const scaledBy = pageWidth / originalPageWidth;
+    (containerDiv as HTMLElement).style.setProperty('--scale-factor', scaledBy.toString());
+    const scaleVal = scaledBy * 2.5 * PDFtoCSSConvert;
+    return scaleVal;
   };
 
   try {
@@ -136,10 +139,11 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
     controlsDiv.appendChild(zoomSelect);
     wrapperDiv.appendChild(canvasContainer);
 
-    const displayPage = async (page: number, scale: number) => {
+    const displayPage = async (page: number) => {
       pageNumberInput.value = `${page}`;
       const pdfPage = await pdfDocument.getPage(page);
-      const viewport = pdfPage.getViewport({ scale });
+      const originalPageWidth = Number(pdfPage._pageInfo.view[2] || defaultPageWidth);
+      const viewport = pdfPage.getViewport({ scale: getZoomVal(originalPageWidth) });
       canvas.width = viewport.width;
       canvas.height = viewport.height;
       canvas.style.width = '100%';
@@ -155,7 +159,7 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
         pdfPage,
         canvas,
         viewport,
-        scale,
+        getZoomVal(originalPageWidth),
       );
 
       window.addEventListener('resize', () => {
@@ -165,7 +169,7 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
           pdfPage,
           canvas,
           viewport,
-          scale,
+          getZoomVal(originalPageWidth),
         );
       });
     };
@@ -179,14 +183,14 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
       } else {
         canvasContainer.style.alignItems = 'center';
       }
-      await displayPage(pageNumber, getZoomVal());
+      await displayPage(pageNumber);
     };
 
     const skipPage = (direction: number) => () => {
       const pageNumber = parseInt(pageNumberInput.value || '1');
       const nextPageNumber = pageNumber + direction;
       if (isValidPage(nextPageNumber)) {
-        displayPage(nextPageNumber, getZoomVal());
+        displayPage(nextPageNumber);
       }
     };
     nextButton.onclick = skipPage(1);
@@ -194,7 +198,7 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
 
     pageNumberInput.onchange = () => {
       const pageNumber = Math.max(Math.min(parseInt(pageNumberInput.value), pdfDocument.numPages), 1);
-      displayPage(pageNumber, getZoomVal());
+      displayPage(pageNumber);
     };
 
     pageNumberInput.addEventListener('click', (e) => e.stopPropagation());
@@ -222,7 +226,7 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
 
     (containerDiv as HTMLDivElement).focus();
 
-    await displayPage(1, getZoomVal());
+    await displayPage(1);
   } catch(err) {
     handleError(containerDiv)(err);
     return err;
