@@ -5,6 +5,9 @@
   "main": "dist/lib/index.js",
   "module": "dist/es2015/index.js",
   "types": "dist/es2015/index.d.ts",
+  "engines": {
+    "node": ">=18.15.0"
+  },
   "files": [
     "dist",
     "styles"
