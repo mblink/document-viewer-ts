@@ -7,7 +7,7 @@
 ![npm bundle size](https://img.shields.io/bundlephobia/minzip/document-viewer-ts)
 
 ### Installation
-Requires peer dependency `pdfjs-dist` at version `2.14.0` or higher:
+Requires peer dependency `pdfjs-dist`:
 
 ```
 npm install pdfjs-dist
