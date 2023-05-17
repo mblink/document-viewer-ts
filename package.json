@@ -63,7 +63,7 @@
     "@typescript-eslint/eslint-plugin": "~5.59.6",
     "@typescript-eslint/parser": "~5.59.6",
     "buffer": "~6.0.0",
-    "canvas": "~2.9.3",
+    "canvas": "~2.11.2",
     "core-js": "~3.23.3",
     "eslint": "~8.38.0",
     "jest": "~29.5.0",
