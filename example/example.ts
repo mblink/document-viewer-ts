@@ -1,3 +1,3 @@
-import { init } from '../dist/es2015';
+import { init } from '../dist/esnext';
 
-init('../node_modules/pdfjs-dist/build/pdf.worker.min.mjs');
+init('http://localhost:8080/pdf.worker.min.mjs');

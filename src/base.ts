@@ -262,6 +262,7 @@ const renderErrorMessage = (containerDiv: Element) => (errorMessage: string) => 
 
 export const renderDocument = (workerSrc: string) => (containerDiv: Element) => {
   try {
+    containerDiv.innerHTML = '';
     const documentUrl = containerDiv.getAttribute('data-document-url');
     containerDiv.classList.add('document-viewer-ts');
     if (!documentUrl) throw new Error('No document url specified');
