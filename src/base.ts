@@ -1,5 +1,7 @@
-import { GlobalWorkerOptions, PDFDocumentProxy, PDFPageProxy, PageViewport, getDocument, renderTextLayer } from 'pdfjs-dist/legacy/build/pdf';
-import { TextContent } from 'pdfjs-dist/types/src/display/api';
+import type { PDFDocumentProxy, PDFPageProxy, PageViewport } from 'pdfjs-dist/legacy/build/pdf.mjs';
+import type { TextContent } from 'pdfjs-dist/types/src/display/api';
+
+const { GlobalWorkerOptions, getDocument, renderTextLayer } = await import('pdfjs-dist/legacy/build/pdf.mjs');
 
 const chevronLeft = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16">
 <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
@@ -149,7 +151,7 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
       canvas.style.width = '100%';
       const ctx = canvas.getContext('2d');
       await pdfPage.render({
-        canvasContext: ctx || {},
+        canvasContext: ctx || new CanvasRenderingContext2D(),
         viewport,
       });
       const textContent = await pdfPage.getTextContent();
@@ -227,6 +229,7 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
     (containerDiv as HTMLDivElement).focus();
 
     await displayPage(1);
+    return;
   } catch(err) {
     handleError(containerDiv)(err);
     return err;
@@ -269,7 +272,14 @@ export const renderDocument = (workerSrc: string) => (containerDiv: Element) => 
         try {
           (() => globalThis)();
           new File([], 'test.txt');
-          GlobalWorkerOptions.workerSrc = workerSrc;
+
+          if (typeof window !== 'undefined' && 'Worker' in window) {
+            GlobalWorkerOptions.workerPort = new Worker(
+              new URL(workerSrc, import.meta.url),
+              { type: 'module' }
+            );
+          }
+
           renderPDF(containerDiv, documentUrl);
         } catch (err) {
           renderErrorMessage(containerDiv)('Your browser does not support showing PDF previews. Click the download button to view this document.');

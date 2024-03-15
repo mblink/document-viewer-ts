@@ -9,12 +9,12 @@ module.exports = {
   mode: "none",
   output: {
     path: path.join(__dirname, "./build/"),
-    publicPath: "./build/",
+    publicPath: path.join(__dirname, "./build/"),
     filename: "[name].bundle.js",
   },
   plugins: [
     new webpack.ProvidePlugin({
-      process: 'process/browser',
+      process: 'process/browser.js',
     }),
   ]
 };

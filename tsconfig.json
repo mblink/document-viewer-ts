@@ -10,7 +10,7 @@
       "dom",
       "es2015"
     ],
-    "module": "es2015",
+    "module": "ESNext",
     "moduleResolution": "node",
     "noEmitOnError": true,
     "noErrorTruncation": true,
@@ -24,7 +24,7 @@
     "outDir": "./dist/es2015",
     "sourceMap": true,
     "strict": true,
-    "target": "es2015"
+    "target": "ESNext"
   },
   "include": [
     "src/*"
