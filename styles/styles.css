@@ -76,6 +76,13 @@ div.document-viewer-ts.viewer-container {
   z-index: 999;
 }
 
+.page-label {
+  display: none;
+  @media (min-width: 36em) {
+    display: flex;
+  }
+}
+
 .document-viewer-ts .viewer-controls:hover {
   opacity: 1;
 }
