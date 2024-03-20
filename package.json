@@ -15,8 +15,7 @@
   "scripts": {
     "build": "npm run build-esnext",
     "build-esnext": "tsc -p tsconfig.json",
-    "build-example-no-webpack": "npm run build && tsc -p tsconfig.example.json",
-    "build-example": "npm run build-example-no-webpack && webpack",
+    "build-example": "npm run build && tsc -p tsconfig.example.json && webpack",
     "clean": "rimraf ./dist ./build",
     "lint:no-fix": "eslint --config='.eslintrc.js' './src/*.{ts,tsx}' './tests/*.{ts,tsx}'",
     "lint": "npm run lint:no-fix -- --fix",
