@@ -19,13 +19,11 @@ jobs:
       - name: Install Node.js dependencies
         run: npm ci
 
+      - name: Test
+        run: npm run serve-example
+
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
-
-      - name: Run Playwright tests
-        run: npx playwright test
-        env:
-          PLAYWRIGHT_TEST_BASE_URL: ${{ github.event.deployment_status.target_url }}
 
       - uses: actions/upload-artifact@v4
         if: always()
