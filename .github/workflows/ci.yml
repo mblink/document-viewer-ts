@@ -20,6 +20,15 @@ jobs:
       - name: Install Node.js dependencies
         run: npm ci
 
+      - name: Build
+        run: npm run build
+
+      - name: Build Example
+        run: npm run build-example-no-webpack
+
+      - name: Build Webpack
+        run: npm run build-example
+
       - name: Test
         run: npm run serve-example
 
