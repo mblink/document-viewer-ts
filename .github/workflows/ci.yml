@@ -22,8 +22,10 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
-      - name : Run test
-        run: npm run prepublishOnly
+      - name: Run Playwright tests
+        run: npx playwright test
+        env:
+          PLAYWRIGHT_TEST_BASE_URL: ${{ github.event.deployment_status.target_url }}
 
       - uses: actions/upload-artifact@v4
         if: always()
@@ -31,3 +33,6 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 30
+
+      - name : Run test
+        run: npm run prepublishOnly
