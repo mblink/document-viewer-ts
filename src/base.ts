@@ -34,8 +34,6 @@ const scaleTextLayer = async (
   textLayerFragment.className = 'textLayer';
   const scale =  pdfScale * (canvas.offsetWidth / viewport.width);
   const vs = pdfPage.getViewport({ scale });
-  textLayerDiv.style.width = `${vs.width}px`;
-  textLayerDiv.style.height = `${vs.height}px`;
   await renderTextLayer({
     textContentSource: textContent,
     container: textLayerFragment,
@@ -91,7 +89,7 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
   zoomSelect.value=`${defaultWidth}`;
 
   const getZoomVal  = (originalPageWidth: number) => {
-    const pageWidth = (containerDiv as HTMLElement).offsetWidth * (parseInt(zoomSelect.value) / 100);
+    const pageWidth = (containerDiv as HTMLElement).clientWidth * (parseInt(zoomSelect.value) / 100);
     const scaledBy = pageWidth / originalPageWidth;
     (containerDiv as HTMLElement).style.setProperty('--scale-factor', scaledBy.toString());
     const scaleVal = scaledBy * 2.5 * PDFtoCSSConvert;
