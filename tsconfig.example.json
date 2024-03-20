@@ -4,6 +4,7 @@
     "outDir": "./build",
   },
   "include": [
-    "example/*"
+    "example/*",
+    "server.js",
   ],
 }
