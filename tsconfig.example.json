@@ -5,6 +5,5 @@
   },
   "include": [
     "example/*",
-    "server.js",
   ],
 }
