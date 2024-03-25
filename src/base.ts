@@ -1,5 +1,5 @@
-import { GlobalWorkerOptions, PDFDocumentProxy, PDFPageProxy, PageViewport, getDocument, renderTextLayer } from 'pdfjs-dist/legacy/build/pdf';
-import { TextContent } from 'pdfjs-dist/types/src/display/api';
+import {  GlobalWorkerOptions, PDFDocumentProxy, PDFPageProxy, PageViewport, getDocument, renderTextLayer } from 'pdfjs-dist/legacy/build/pdf';
+import type { TextContent } from 'pdfjs-dist/types/src/display/api';
 
 const chevronLeft = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16">
 <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
@@ -32,8 +32,6 @@ const scaleTextLayer = async (
   textLayerFragment.className = 'textLayer';
   const scale =  pdfScale * (canvas.offsetWidth / viewport.width);
   const vs = pdfPage.getViewport({ scale });
-  textLayerDiv.style.width = `${vs.width}px`;
-  textLayerDiv.style.height = `${vs.height}px`;
   await renderTextLayer({
     textContentSource: textContent,
     container: textLayerFragment,
@@ -90,7 +88,7 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
   zoomSelect.value=`${defaultWidth}`;
 
   const getZoomVal  = (originalPageWidth: number) => {
-    const pageWidth = (containerDiv as HTMLElement).offsetWidth * (parseInt(zoomSelect.value) / 100);
+    const pageWidth = (containerDiv as HTMLElement).clientWidth * (parseInt(zoomSelect.value) / 100);
     const scaledBy = pageWidth / originalPageWidth;
     (containerDiv as HTMLElement).style.setProperty('--scale-factor', scaledBy.toString());
     const scaleVal = scaledBy * 2.5 * PDFtoCSSConvert;
@@ -150,7 +148,7 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
       canvas.style.width = '100%';
       const ctx = canvas.getContext('2d');
       await pdfPage.render({
-        canvasContext: ctx || {},
+        canvasContext: ctx || new CanvasRenderingContext2D(),
         viewport,
       });
       const textContent = await pdfPage.getTextContent();
@@ -228,6 +226,7 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
     (containerDiv as HTMLDivElement).focus();
 
     await displayPage(1);
+    return;
   } catch(err) {
     handleError(containerDiv)(err);
     return err;
@@ -260,6 +259,7 @@ const renderErrorMessage = (containerDiv: Element) => (errorMessage: string) => 
 
 export const renderDocument = (workerSrc: string) => (containerDiv: Element) => {
   try {
+    containerDiv.innerHTML = '';
     const documentUrl = containerDiv.getAttribute('data-document-url');
     containerDiv.classList.add('document-viewer-ts');
     if (!documentUrl) throw new Error('No document url specified');
