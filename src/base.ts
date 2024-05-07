@@ -35,7 +35,7 @@ const scaleTextLayer = async (
   await renderTextLayer({
     textContentSource: textContent,
     container: textLayerFragment,
-    viewport: vs,
+    viewport: vs
   }).promise;
   textLayerDiv.appendChild(textLayerFragment);
 };
