@@ -76,7 +76,7 @@ export const renderPDF = async (containerDiv: Element, documentUrl: string) => {
   nextButton.className = 'next-button';
   const prevButton = document.createElement('button');
   prevButton.className = 'prev-button';
-  const loadingTask = getDocument(documentUrl);
+  const loadingTask = getDocument({url: documentUrl, isEvalSupported: false});
 
   const zoomSelect = document.createElement('select');
   zoomSelect.className = 'zoom-select';
