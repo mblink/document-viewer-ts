@@ -37,7 +37,7 @@ const scaleTextLayer = async (
     textContentSource: textContent,
     container: textLayerFragment,
     viewport: vs
-  }).promise;
+  })?.promise;
   textLayerDiv.appendChild(textLayerFragment);
 };
 
