@@ -1,4 +1,4 @@
-import {  GlobalWorkerOptions, PDFDocumentProxy, PDFPageProxy, PageViewport, getDocument, renderTextLayer } from 'pdfjs-dist/legacy/build/pdf';
+import { GlobalWorkerOptions, PDFDocumentProxy, PDFPageProxy, PageViewport, getDocument, renderTextLayer } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import type { TextContent } from 'pdfjs-dist/types/src/display/api';
 
 const chevronLeft = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16">
@@ -36,7 +36,7 @@ const scaleTextLayer = async (
     textContentSource: textContent,
     container: textLayerFragment,
     viewport: vs
-  }).promise;
+  })?.promise;
   textLayerDiv.appendChild(textLayerFragment);
 };
 
