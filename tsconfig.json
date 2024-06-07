@@ -8,9 +8,9 @@
     "jsx": "react",
     "lib": [
       "dom",
-      "ESNext"
+      "es2015"
     ],
-    "module": "ESNext",
+    "module": "es2015",
     "moduleResolution": "node",
     "noEmitOnError": true,
     "noErrorTruncation": true,
@@ -21,10 +21,10 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "pretty": true,
-    "outDir": "./dist/esnext",
+    "outDir": "./dist/es2015",
     "sourceMap": true,
     "strict": true,
-    "target": "ESNext"
+    "target": "es2015"
   },
   "include": [
     "src/*"

@@ -3,8 +3,8 @@
   "version": "1.0.0-legacy",
   "description": "PDF and MS Doc viewer written in TypeScript for React and vanilla JavaScript",
   "main": "dist/lib/index.js",
-  "module": "dist/esnext/index.js",
-  "types": "dist/esnext/index.d.ts",
+  "module": "dist/es2015/index.js",
+  "types": "dist/es2015/index.d.ts",
   "engines": {
     "node": ">=18.15.0"
   },
@@ -13,8 +13,8 @@
     "styles"
   ],
   "scripts": {
-    "build": "npm run build-esnext",
-    "build-esnext": "tsc -p tsconfig.json",
+    "build": "npm run build-es2015",
+    "build-es2015": "tsc -p tsconfig.json",
     "build-example": "npm run build && tsc -p tsconfig.example.json && webpack",
     "clean": "rimraf ./dist ./build",
     "lint:no-fix": "eslint --config='.eslintrc.js' './src/*.{ts,tsx}' './tests/*.{ts,tsx}'",
