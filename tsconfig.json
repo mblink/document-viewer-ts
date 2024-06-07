@@ -8,9 +8,9 @@
     "jsx": "react",
     "lib": [
       "dom",
-      "es2015"
+      "es2020"
     ],
-    "module": "es2015",
+    "module": "es2020",
     "moduleResolution": "node",
     "noEmitOnError": true,
     "noErrorTruncation": true,
@@ -21,10 +21,10 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "pretty": true,
-    "outDir": "./dist/es2015",
+    "outDir": "./dist/es2020",
     "sourceMap": true,
     "strict": true,
-    "target": "es2015"
+    "target": "es2020"
   },
   "include": [
     "src/*"
