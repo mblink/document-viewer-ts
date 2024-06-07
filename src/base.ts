@@ -1,4 +1,4 @@
-import { GlobalWorkerOptions, PDFDocumentProxy, PDFPageProxy, PageViewport, getDocument, renderTextLayer,} from 'pdfjs-dist/legacy/build/pdf.mjs';
+import { GlobalWorkerOptions, PDFDocumentProxy, PDFPageProxy, PageViewport, getDocument, renderTextLayer } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import type { TextContent } from 'pdfjs-dist/types/src/display/api';
 
 const chevronLeft = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16">
@@ -271,7 +271,6 @@ export const renderDocument = (workerSrc: string) => (containerDiv: Element) => 
           (() => globalThis)();
           new File([], 'test.txt');
           GlobalWorkerOptions.workerSrc = workerSrc;
-
           renderPDF(containerDiv, documentUrl);
         } catch (err) {
           renderErrorMessage(containerDiv)('Your browser does not support showing PDF previews. Click the download button to view this document.');
