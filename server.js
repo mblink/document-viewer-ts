@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 
 const app = express();
 
@@ -13,4 +14,7 @@ app.listen(port, hostname, () => {
 app.use('/', express.static('./'));
 app.use('/', express.static('build'));
 app.use('/', express.static('example'));
-app.use('/', express.static('node_modules/pdfjs-dist/build'));
+app.use('/', express.static('node_modules/pdfjs-dist/legacy/build'));
+// The viewer derives `wasmUrl` from `workerSrc`, so the decoders and their
+// no-wasm JS fallbacks must sit next to the worker.
+app.use('/wasm', express.static(path.join('node_modules', 'pdfjs-dist', 'wasm')));
