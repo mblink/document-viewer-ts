@@ -29,13 +29,19 @@ export default [
     },
     rules: {
       ...tsPlugin.configs['recommended-type-checked'].rules,
+
+      // Carried over from .eslintrc.js. Rules that were "off" there are omitted
+      // rather than restated. ban-types, no-empty-interface and no-var-requires
+      // are gone from typescript-eslint 8 and are covered by no-empty-object-type,
+      // no-unsafe-function-type, no-wrapper-object-types and no-require-imports,
+      // all of which recommended-type-checked already enables.
       '@typescript-eslint/adjacent-overload-signatures': 'warn',
       '@typescript-eslint/array-type': ['warn', { default: 'array-simple', readonly: 'generic' }],
       '@typescript-eslint/ban-ts-comment': 'warn',
       '@typescript-eslint/dot-notation': 'warn',
+      '@typescript-eslint/explicit-member-accessibility': ['warn', { accessibility: 'no-public' }],
       '@typescript-eslint/no-empty-function': 'warn',
       '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/no-implied-eval': 'warn',
       '@typescript-eslint/no-inferrable-types': 'off',
       '@typescript-eslint/no-misused-new': 'warn',
@@ -64,12 +70,20 @@ export default [
       '@typescript-eslint/prefer-regexp-exec': 'warn',
       '@typescript-eslint/restrict-plus-operands': 'warn',
       '@typescript-eslint/restrict-template-expressions': 'off',
+      '@typescript-eslint/typedef': ['warn', { parameter: true, propertyDeclaration: true }],
       '@typescript-eslint/unbound-method': 'off',
       '@typescript-eslint/unified-signatures': 'warn',
       'camelcase': 'warn',
+      'comma-spacing': 'warn',
       'constructor-super': 'warn',
       'eqeqeq': ['warn', 'smart'],
       'guard-for-in': 'warn',
+      'id-denylist': [
+        'warn',
+        'any', 'Number', 'number', 'String', 'string', 'Boolean', 'boolean', 'Undefined', 'undefined',
+      ],
+      'id-match': 'warn',
+      'new-parens': 'warn',
       'no-bitwise': 'warn',
       'no-caller': 'warn',
       'no-console': 'warn',
@@ -82,14 +96,41 @@ export default [
       'no-redeclare': 'off',
       'no-shadow': 'off',
       'no-throw-literal': 'warn',
+      'no-trailing-spaces': 'warn',
       'no-undef-init': 'warn',
       'no-unused-vars': 'off',
       'no-var': 'warn',
       'no-void': ['warn', { allowAsStatement: true }],
       'prefer-const': 'warn',
+      'quotes': ['warn', 'single', { avoidEscape: true, allowTemplateLiterals: true }],
+      'semi': 'warn',
       'sort-imports': 'warn',
+      'spaced-comment': ['warn', 'always', { exceptions: ['*-'], markers: ['/'] }],
       'use-isnan': 'warn',
       'valid-typeof': ['warn', { requireStringLiterals: true }],
+
+      // Correctness rules this viewer has actually needed. A discarded render
+      // promise is what let the canvas race go unnoticed, and the interleaved
+      // await/assign in the render chain is exactly what require-atomic-updates
+      // is for.
+      '@typescript-eslint/no-floating-promises': 'error',
+      'require-atomic-updates': 'error',
+      // no-unnecessary-condition is deliberately off: `destroyed` and the other
+      // lifecycle flags are only ever mutated from the destroy() closure, so
+      // TypeScript narrows them to false and the rule reports the guards that
+      // cancel in-flight renders as dead code. Acting on it would reintroduce
+      // the leak those guards exist to prevent.
+      '@typescript-eslint/switch-exhaustiveness-check': ['warn', { considerDefaultExhaustiveForUnions: true }],
+      '@typescript-eslint/no-confusing-void-expression': 'warn',
+      '@typescript-eslint/no-misused-spread': 'warn',
+      '@typescript-eslint/no-unnecessary-template-expression': 'warn',
+      '@typescript-eslint/return-await': ['warn', 'always'],
+      'array-callback-return': 'warn',
+      'no-promise-executor-return': 'warn',
+      'no-self-compare': 'warn',
+      'no-template-curly-in-string': 'warn',
+      'no-unmodified-loop-condition': 'warn',
+      'no-unreachable-loop': 'warn',
     },
   },
   {

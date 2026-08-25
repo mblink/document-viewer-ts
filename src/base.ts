@@ -272,8 +272,8 @@ export const renderPDF = (containerDiv: Element, documentUrl: string): { promise
         void displayPage(pageNumber);
       };
 
-      pageNumberInput.addEventListener('click', (e) => e.stopPropagation());
-      zoomSelect.addEventListener('click', (e) => e.stopPropagation());
+      pageNumberInput.addEventListener('click', (e) => { e.stopPropagation(); });
+      zoomSelect.addEventListener('click', (e) => { e.stopPropagation(); });
 
       containerDiv.addEventListener('keydown', (e) => {
         e.stopPropagation();
