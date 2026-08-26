@@ -49,7 +49,10 @@ type CurrentPage = {
   pdfPage: PDFPageProxy;
   viewport: PageViewport;
   originalPageWidth: number;
+  renderScale: number;
 };
+
+type LayerSlot = { current: TextLayer | null };
 
 const scaleTextLayer = async (
   textLayerDiv: HTMLDivElement,
@@ -57,18 +60,26 @@ const scaleTextLayer = async (
   pdfPage: PDFPageProxy,
   canvas: HTMLCanvasElement,
   viewport: PageViewport,
-  pdfScale: number,
+  renderScale: number,
+  slot: LayerSlot,
   isStillCurrent: () => boolean,
 ) => {
   const textLayerFragment = document.createElement('div');
   textLayerFragment.className = 'textLayer';
-  const scale = pdfScale * (canvas.offsetWidth / viewport.width);
+  // renderScale is the scale the viewport was actually built at, so this
+  // reduces to cssWidth / rawPageWidth even when fittedScale clamped it.
+  const scale = renderScale * (canvas.offsetWidth / viewport.width);
   const vs = pdfPage.getViewport({ scale });
-  await new TextLayer({
+  const layer = new TextLayer({
     textContentSource: textContent,
     container: textLayerFragment,
     viewport: vs,
-  }).render();
+  });
+  // A superseded run streams every item on the page before the generation
+  // check can discard it; cancelling stops that work instead of wasting it.
+  slot.current?.cancel();
+  slot.current = layer;
+  await layer.render();
   // A superseded run must not touch the DOM: two concurrent runs that both
   // cleared and refilled the layer are what garbled it on resize.
   if (!isStillCurrent()) return;
@@ -153,9 +164,9 @@ export const renderPDF = (containerDiv: Element, documentUrl: string): (() => vo
   let requestedPage = 1;
   let currentPage: CurrentPage | null = null;
   let textLayerGeneration = 0;
+  const layerSlot: LayerSlot = { current: null };
 
   const refreshTextLayer = (page: CurrentPage) => {
-    const pdfScale = getZoomVal(page.originalPageWidth);
     // pdf.js sizes the layer as --total-scale-factor * the raw page width, so
     // this must come from the laid-out canvas: deriving it from the container
     // overshoots wherever .wrapper reserves a classic scrollbar.
@@ -172,7 +183,8 @@ export const renderPDF = (containerDiv: Element, documentUrl: string): (() => vo
       page.pdfPage,
       canvas,
       page.viewport,
-      pdfScale,
+      page.renderScale,
+      layerSlot,
       () => !signal.aborted && generation === textLayerGeneration,
     );
   };
@@ -183,22 +195,38 @@ export const renderPDF = (containerDiv: Element, documentUrl: string): (() => vo
   // the viewport — a tab, accordion or modal revealing it, most importantly,
   // which is what left a hidden container stuck at a 0x0 canvas.
   let lastWidth = 0;
+  let resizeFrame = 0;
+  let rerenderQueued = false;
   let rerender: (() => void) | null = null;
   const onResize = () => {
     const width = (containerDiv as HTMLElement).clientWidth;
-    // ResizeObserver coalesces to one callback per frame, but a drag still
-    // yields a callback per frame; a width that did not change cannot move the
-    // text layer, and rebuilding it streams every item on the page.
+    // A width that did not change cannot move the text layer, and rebuilding it
+    // streams every item on the page.
     if (currentPage === null || width === 0 || width === lastWidth) return;
     lastWidth = width;
-    // A container that was not laid out rendered a 0x0 canvas; scaling the text
-    // layer over it cannot recover, only rendering the page again can.
-    if (canvas.width === 0 && rerender !== null) { rerender(); return; }
-    refreshTextLayer(currentPage).catch(noop);
+    // An animated reveal or a dragged split pane changes width every frame, so
+    // debounce to the frame rather than rebuilding once per callback.
+    if (resizeFrame !== 0) cancelAnimationFrame(resizeFrame);
+    resizeFrame = requestAnimationFrame(() => {
+      resizeFrame = 0;
+      if (currentPage === null) return;
+      // A container that was not laid out rendered a 0x0 canvas; scaling the
+      // text layer over it cannot recover, only rendering the page again can.
+      if (canvas.width === 0) {
+        if (!rerenderQueued && rerender !== null) { rerenderQueued = true; rerender(); }
+        return;
+      }
+      rerenderQueued = false;
+      refreshTextLayer(currentPage).catch(noop);
+    });
   };
   const observer = new ResizeObserver(onResize);
   observer.observe(containerDiv);
-  signal.addEventListener('abort', () => { observer.disconnect(); });
+  signal.addEventListener('abort', () => {
+    observer.disconnect();
+    if (resizeFrame !== 0) cancelAnimationFrame(resizeFrame);
+    layerSlot.current?.cancel();
+  });
 
   signal.addEventListener('abort', () => {
     if (currentRenderTask !== null) {
@@ -259,7 +287,8 @@ export const renderPDF = (containerDiv: Element, documentUrl: string): (() => vo
       const renderPage = async (page: number) => {
         const pdfPage = await upTo(pdfDocument.getPage(page));
         const originalPageWidth = Number(pdfPage.view[2]) - Number(pdfPage.view[0]) || defaultPageWidth;
-        const viewport = pdfPage.getViewport({ scale: fittedScale(pdfPage, getZoomVal(originalPageWidth)) });
+        const renderScale = fittedScale(pdfPage, getZoomVal(originalPageWidth));
+        const viewport = pdfPage.getViewport({ scale: renderScale });
         canvas.width = viewport.width;
         canvas.height = viewport.height;
         canvas.style.width = '100%';
@@ -271,8 +300,13 @@ export const renderPDF = (containerDiv: Element, documentUrl: string): (() => vo
           if (currentRenderTask === task) currentRenderTask = null;
         }
         const textContent = await upTo(pdfPage.getTextContent());
-        currentPage = { textContent, pdfPage, viewport, originalPageWidth };
+        const previous = currentPage;
+        currentPage = { textContent, pdfPage, viewport, originalPageWidth, renderScale };
         await refreshTextLayer(currentPage);
+        // pdf.js caches every page it hands out; without this a long official
+        // statement retains the operator list and decoded images of every page
+        // the reader visited.
+        if (previous !== null && previous.pdfPage !== pdfPage) previous.pdfPage.cleanup();
       };
 
       const displayPage = (page: number): Promise<void> => {

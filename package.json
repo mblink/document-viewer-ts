@@ -6,11 +6,11 @@
   "exports": {
     ".": {
       "types": "./dist/es2020/index.d.ts",
-      "import": "./dist/es2020/index.js"
+      "default": "./dist/es2020/index.js"
     },
     "./base": {
       "types": "./dist/es2020/base.d.ts",
-      "import": "./dist/es2020/base.js"
+      "default": "./dist/es2020/base.js"
     },
     "./dist/*": "./dist/*",
     "./styles/*": "./styles/*",
