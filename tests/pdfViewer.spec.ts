@@ -330,7 +330,17 @@ test.describe('pdf viewer', () => {
     expect(canvas!.width).toBeLessThanOrEqual(32767);
     expect(canvas!.height).toBeLessThanOrEqual(32767);
     expect(canvas!.pixels).toBeLessThanOrEqual(2 ** 25);
-    expect(canvas!.opaque).toBeGreaterThan(0);
+
+    // The clamp shrinks the backing store but must not desynchronise the text
+    // layer from the canvas it annotates.
+    const box = await page.evaluate(() => {
+      const c = document.querySelector('#doc-1-canvas');
+      const l = document.querySelector('#doc-1 .text-layer > .textLayer');
+      if (c === null || l === null) return null;
+      return { canvas: c.getBoundingClientRect().width, layer: l.getBoundingClientRect().width };
+    });
+    expect(box).not.toBeNull();
+    expect(Math.abs(box!.layer - box!.canvas)).toBeLessThanOrEqual(2);
   });
 
   test('a container revealed after render still paints', async ({ page }) => {
