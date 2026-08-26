@@ -115,11 +115,10 @@ export default [
       // is for.
       '@typescript-eslint/no-floating-promises': 'error',
       'require-atomic-updates': 'error',
-      // no-unnecessary-condition is deliberately off: `destroyed` and the other
-      // lifecycle flags are only ever mutated from the destroy() closure, so
-      // TypeScript narrows them to false and the rule reports the guards that
-      // cancel in-flight renders as dead code. Acting on it would reintroduce
-      // the leak those guards exist to prevent.
+      // Cancellation is an AbortSignal rather than a local boolean, so TypeScript
+      // cannot narrow it and this rule no longer reports the lifecycle guards as
+      // dead code. Reintroducing a mutable flag would put it back to reporting them.
+      '@typescript-eslint/no-unnecessary-condition': 'warn',
       '@typescript-eslint/switch-exhaustiveness-check': ['warn', { considerDefaultExhaustiveForUnions: true }],
       '@typescript-eslint/no-confusing-void-expression': 'warn',
       '@typescript-eslint/no-misused-spread': 'warn',
@@ -134,7 +133,7 @@ export default [
     },
   },
   {
-    files: ['**/*.js', '**/*.mjs'],
+    files: ['**/*.js', '**/*.mjs', '**/*.cjs'],
     languageOptions: {
       globals: { ...globals.node },
     },

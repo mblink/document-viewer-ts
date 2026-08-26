@@ -4,6 +4,7 @@
         "outDir": "../build/tests",
         "rootDir": "..",
         "noEmit": true,
+        "types": ["node"],
     },
     "include": [
         "./*.ts",

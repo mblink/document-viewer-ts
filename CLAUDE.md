@@ -6,6 +6,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `document-viewer-ts` — a small npm library that renders PDF, MS Office, and text documents in the browser. It ships two entry points from one implementation: an `init(workerSrc)` function for vanilla HTML/JS pages, and a React `<Viewer />` component. Published files are `dist/` (built) and `styles/` (shipped as-is).
 
+## Skills
+
+Detailed guidance lives in `.claude/skills/`. Consult `using-superpowers` at task start to pick the right ones.
+
+| Task | Skills |
+| --- | --- |
+| Any change to `src/base.ts` | `viewer-lifecycle`, `cdd`, `conventions` |
+| Render, cancel, teardown, resize, zoom | `viewer-lifecycle` |
+| pdf.js upgrade or API migration | `viewer-lifecycle`, `playwright-testing`, `releasing` |
+| Writing/editing TypeScript | `cdd`, `conventions` |
+| Tests | `playwright-testing` |
+| A lint rule fires | `conventions` |
+| Debugging | `systematic-debugging` |
+| Publishing / versioning | `releasing` |
+| Completing work | `verification-before-completion` |
+
 ## Commands
 
 ```bash
@@ -48,16 +64,16 @@ The single contract between all layers is a container element carrying `class="v
 
 Every render owns resources that must be released, and several past bugs came from not releasing them:
 
-- `renderPDF` returns `{ promise, destroy }`. `destroy()` cancels the in-flight `RenderTask`, removes the resize listener, and destroys the `PDFDocumentLoadingTask` (which also tears down its worker).
+- `renderPDF` returns a teardown. It aborts the viewer's `AbortController`, which cancels the in-flight `RenderTask`, releases every listener registered with `{ signal }`, removes the wrapper, and destroys the `PDFDocumentLoadingTask` (which also tears down its worker).
 - `renderDocument` keeps a module-level `WeakMap` of container → teardown and calls the previous teardown before re-rendering, because `init()` renders each container twice (immediately and on `load`) and React StrictMode mounts twice.
 - **One canvas, one render at a time.** pdf.js tracks live render tasks per canvas in an internal WeakSet and throws `Cannot use the same canvas during multiple render() operations` if a second render claims a canvas the first still holds. `currentRenderTask` is that single slot; `renderChain` serializes callers; `requestedPage` lets superseded requests drop out instead of queueing a redundant render. `RenderingCancelledException` is the expected outcome of a superseded render and is swallowed; anything else reaches `handleError`.
-- **One resize listener, not one per page.** It reads a mutable `currentPage` slot and bumps `textLayerGeneration`, so only the newest text-layer run is allowed to touch the DOM.
+- **One `ResizeObserver` on the container, not a window listener per page.** A window listener misses the container being resized by anything else — a tab, accordion or modal revealing it — which left a hidden container stuck at a 0x0 canvas. The handler ignores unchanged and zero widths, and re-renders rather than rescaling when the canvas has no size.
 
 ### PDF rendering specifics
 
 - **One page at a time.** `displayPage(n)` re-renders the same single canvas; there is no continuous scroll. Navigation is the prev/next buttons, the page-number input, and ArrowLeft/ArrowRight (the container sets `tabIndex` and focuses itself on click).
-- **Zoom and scaling** run through `getZoomVal`, which is the trickiest part of the file. It derives a scale from the container width and the selected zoom percentage, writes it to the `--scale-factor` CSS custom property on the container (**pdf.js's `TextLayer` requires this variable** — omitting it breaks text positioning), and multiplies by `PDFtoCSSConvert` (96/72) for the canvas viewport.
-- **The text layer is re-rendered, not re-scaled**, by `scaleTextLayer` — on zoom change and on `window` resize — because its geometry depends on the rendered canvas's `offsetWidth`.
+- **Zoom and scaling** run through `getZoomVal`, which is the trickiest part of the file. It derives a scale from the container width and the selected zoom percentage, writes the render scale (`--scale-factor` is owned by `refreshTextLayer`, which measures the laid-out canvas — deriving it from the container overshoots wherever the wrapper reserves a scrollbar), and multiplies by `PDFtoCSSConvert` (96/72) for the canvas viewport. **`--scale-factor` is only the input.** pdf.js 6 sizes the text layer from `--total-scale-factor`, which its own stylesheet derives (`calc(var(--scale-factor) * var(--user-unit))`), along with `--scale-round-x/y`, `--text-scale-factor`, `--min-font-size` and the per-span `--font-height`/`--scale-x`/`--rotate`. `styles/styles.css` defines that whole chain on `.textLayer`; without it every span falls back to 16px and the layer stops tracking the canvas.
+- **The text layer is re-rendered, not re-scaled**, by `scaleTextLayer` — on zoom change and on `window` resize. Under pdf.js 6 the layer's box is sized from `--total-scale-factor` and each span positioned as a percentage of it; the `vs` viewport scale only feeds the `measureText` ratio behind `--scale-x`.
 - Imports come from `pdfjs-dist/legacy/build/pdf.mjs` (the legacy build). The package version carries a `-legacy` suffix to match.
 - **`wasmUrl` must be set.** pdf.js 6 loads its JBIG2/OpenJPEG/QCMS decoders — and the plain-JS fallbacks beside them — from `wasmUrl`, whose default is page-relative and so 404s on any nested route. `wasmUrlFor` derives it from `GlobalWorkerOptions.workerSrc`, so consumers must copy `pdfjs-dist/wasm` next to the worker they serve.
 - `isEvalSupported` is gone: pdf.js 6 removed the eval-based code path entirely, so the option no longer exists (and there is no `eval`/`new Function` left in the shipped build).

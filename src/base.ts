@@ -21,9 +21,24 @@ const noop = () => undefined;
 // which the consumer already serves from a known location.
 const wasmUrlFor = (workerSrc: string): string => String(workerSrc || '').replace(/[^/]*$/, 'wasm/');
 
+const cancelledNames = ['RenderingCancelledException', 'AbortError'];
+
 const isCancelled = (err: unknown): boolean =>
   err instanceof RenderingCancelledException ||
-  (typeof err === 'object' && err !== null && (err as { name?: string }).name === 'RenderingCancelledException');
+  (typeof err === 'object' && err !== null && cancelledNames.includes(String((err as { name?: string }).name)));
+
+// pdf.js's own ceilings (AppOptions maxCanvasPixels / maxCanvasDim). Past
+// either one the browser hands back a blank canvas with no error, so a zoom
+// that would exceed them is rendered at the largest scale that fits.
+const maxCanvasPixels = 2 ** 25;
+const maxCanvasDim = 32767;
+
+const fittedScale = (pdfPage: PDFPageProxy, scale: number): number => {
+  const { width, height } = pdfPage.getViewport({ scale });
+  const byArea = Math.sqrt(maxCanvasPixels / (width * height));
+  const bySide = Math.min(maxCanvasDim / width, maxCanvasDim / height);
+  return scale * Math.min(1, byArea, bySide);
+};
 
 const zoomValues = [50, 80, 100, 125, 150, 200, 300, 400];
 const defaultWidth = 80;
@@ -72,7 +87,7 @@ const createLoadingIndicator = () => {
   return container;
 };
 
-export const renderPDF = (containerDiv: Element, documentUrl: string): { promise: Promise<unknown>; destroy: () => void } => {
+export const renderPDF = (containerDiv: Element, documentUrl: string): (() => void) => {
   const wrapperDiv = document.createElement('div');
   wrapperDiv.className = 'wrapper';
   containerDiv.appendChild(wrapperDiv);
@@ -115,7 +130,6 @@ export const renderPDF = (containerDiv: Element, documentUrl: string): { promise
   const getZoomVal = (originalPageWidth: number) => {
     const pageWidth = (containerDiv as HTMLElement).clientWidth * (parseInt(zoomSelect.value) / 100);
     const scaledBy = pageWidth / originalPageWidth;
-    (containerDiv as HTMLElement).style.setProperty('--scale-factor', scaledBy.toString());
     const scaleVal = scaledBy * 2.5 * PDFtoCSSConvert;
     return scaleVal;
   };
@@ -127,14 +141,23 @@ export const renderPDF = (containerDiv: Element, documentUrl: string): { promise
   // if a second render starts while the first still holds it. `currentRenderTask`
   // is that single slot, `renderChain` serializes callers, and `requestedPage`
   // lets superseded requests drop out instead of queueing a redundant render.
+  const controller = new AbortController();
+  const { signal } = controller;
   let currentRenderTask: RenderTask | null = null;
   let renderChain: Promise<void> = Promise.resolve();
   let requestedPage = 1;
   let currentPage: CurrentPage | null = null;
   let textLayerGeneration = 0;
-  let destroyed = false;
 
   const refreshTextLayer = (page: CurrentPage) => {
+    const pdfScale = getZoomVal(page.originalPageWidth);
+    // pdf.js sizes the layer as --total-scale-factor * the raw page width, so
+    // this must come from the laid-out canvas: deriving it from the container
+    // overshoots wherever .wrapper reserves a classic scrollbar.
+    if (canvas.offsetWidth > 0) {
+      (containerDiv as HTMLElement).style
+        .setProperty('--scale-factor', `${canvas.offsetWidth / page.originalPageWidth}`);
+    }
     textLayerGeneration += 1;
     const generation = textLayerGeneration;
     return scaleTextLayer(
@@ -143,35 +166,50 @@ export const renderPDF = (containerDiv: Element, documentUrl: string): { promise
       page.pdfPage,
       canvas,
       page.viewport,
-      getZoomVal(page.originalPageWidth),
-      () => !destroyed && generation === textLayerGeneration,
+      pdfScale,
+      () => !signal.aborted && generation === textLayerGeneration,
     );
   };
 
-  // One listener over a mutable current-page slot. Registering it per page view
-  // meant N pages produced N concurrent handlers on a single resize.
+  // One observer over a mutable current-page slot. Registering per page view
+  // meant N pages produced N concurrent handlers on a single resize, and a
+  // window listener misses the container being resized by anything other than
+  // the viewport — a tab, accordion or modal revealing it, most importantly,
+  // which is what left a hidden container stuck at a 0x0 canvas.
+  let lastWidth = 0;
+  let rerender: (() => void) | null = null;
   const onResize = () => {
-    if (destroyed || currentPage === null) return;
+    const width = (containerDiv as HTMLElement).clientWidth;
+    // ResizeObserver coalesces to one callback per frame, but a drag still
+    // yields a callback per frame; a width that did not change cannot move the
+    // text layer, and rebuilding it streams every item on the page.
+    if (currentPage === null || width === 0 || width === lastWidth) return;
+    lastWidth = width;
+    // A container that was not laid out rendered a 0x0 canvas; scaling the text
+    // layer over it cannot recover, only rendering the page again can.
+    if (canvas.width === 0 && rerender !== null) { rerender(); return; }
     refreshTextLayer(currentPage).catch(noop);
   };
-  window.addEventListener('resize', onResize);
+  const observer = new ResizeObserver(onResize);
+  observer.observe(containerDiv);
+  signal.addEventListener('abort', () => { observer.disconnect(); });
 
-  const destroy = () => {
-    if (destroyed) return;
-    destroyed = true;
-    window.removeEventListener('resize', onResize);
+  signal.addEventListener('abort', () => {
     if (currentRenderTask !== null) {
       currentRenderTask.cancel();
       currentRenderTask = null;
     }
     currentPage = null;
+    wrapperDiv.remove();
     loadingTask.destroy().catch(noop);
-  };
+  });
 
-  const promise = (async () => {
+  const destroy = () => { controller.abort(); };
+
+  void (async () => {
     try {
       const pdfDocument: PDFDocumentProxy = await loadingTask.promise;
-      if (destroyed) return;
+      signal.throwIfAborted();
       wrapperDiv.removeChild(loadingIndicator);
 
       const isValidPage = (page: number) => page <= pdfDocument.numPages && page > 0;
@@ -212,9 +250,9 @@ export const renderPDF = (containerDiv: Element, documentUrl: string): { promise
 
       const renderPage = async (page: number) => {
         const pdfPage = await pdfDocument.getPage(page);
-        if (destroyed) return;
+        signal.throwIfAborted();
         const originalPageWidth = Number(pdfPage.view[2] || defaultPageWidth);
-        const viewport = pdfPage.getViewport({ scale: getZoomVal(originalPageWidth) });
+        const viewport = pdfPage.getViewport({ scale: fittedScale(pdfPage, getZoomVal(originalPageWidth)) });
         canvas.width = viewport.width;
         canvas.height = viewport.height;
         canvas.style.width = '100%';
@@ -225,9 +263,9 @@ export const renderPDF = (containerDiv: Element, documentUrl: string): { promise
         } finally {
           if (currentRenderTask === task) currentRenderTask = null;
         }
-        if (destroyed) return;
+        signal.throwIfAborted();
         const textContent = await pdfPage.getTextContent();
-        if (destroyed) return;
+        signal.throwIfAborted();
         currentPage = { textContent, pdfPage, viewport, originalPageWidth };
         await refreshTextLayer(currentPage);
       };
@@ -238,16 +276,20 @@ export const renderPDF = (containerDiv: Element, documentUrl: string): { promise
         // Frees the canvas synchronously so the next chain link can claim it.
         if (currentRenderTask !== null) currentRenderTask.cancel();
         renderChain = renderChain
-          .then(() => (destroyed || page !== requestedPage ? undefined : renderPage(page)))
+          .then(() => (signal.aborted || page !== requestedPage ? undefined : renderPage(page)))
           .catch((err: unknown) => {
-            if (destroyed || isCancelled(err)) return;
+            // pdf.js rejects in-flight work with a plain Error when the loading
+            // task is destroyed, so the signal has to be consulted directly.
+            if (signal.aborted || isCancelled(err)) return;
             handleError(containerDiv)(err);
           });
         return renderChain;
       };
 
+      rerender = () => { void displayPage(requestedPage); };
+
       zoomSelect.onchange = () => {
-        const pageNumber = parseInt(pageNumberInput.value || '1');
+        const pageNumber = requestedPage;
         const zoomVal = parseInt(zoomSelect.value);
         pageContainer.style.width = `${zoomSelect.value}%`;
         if (zoomVal > 100) {
@@ -268,12 +310,13 @@ export const renderPDF = (containerDiv: Element, documentUrl: string): { promise
       prevButton.onclick = skipPage(-1);
 
       pageNumberInput.onchange = () => {
-        const pageNumber = Math.max(Math.min(parseInt(pageNumberInput.value), pdfDocument.numPages), 1);
+        const parsed = parseInt(pageNumberInput.value);
+        const pageNumber = Number.isNaN(parsed) ? requestedPage : Math.max(Math.min(parsed, pdfDocument.numPages), 1);
         void displayPage(pageNumber);
       };
 
-      pageNumberInput.addEventListener('click', (e) => { e.stopPropagation(); });
-      zoomSelect.addEventListener('click', (e) => { e.stopPropagation(); });
+      pageNumberInput.addEventListener('click', (e) => { e.stopPropagation(); }, { signal });
+      zoomSelect.addEventListener('click', (e) => { e.stopPropagation(); }, { signal });
 
       containerDiv.addEventListener('keydown', (e) => {
         e.stopPropagation();
@@ -287,26 +330,25 @@ export const renderPDF = (containerDiv: Element, documentUrl: string): { promise
           default:
             return;
         }
-      });
+      }, { signal });
 
       containerDiv.addEventListener('click', () => {
         (containerDiv as HTMLDivElement).focus();
-      });
+      }, { signal });
 
       containerDiv.setAttribute('tabIndex', '1');
 
       (containerDiv as HTMLDivElement).focus();
 
       await displayPage(1);
-      return;
     } catch (err) {
-      if (destroyed || isCancelled(err)) return;
+      if (signal.aborted || isCancelled(err)) return;
+      wrapperDiv.remove();
       handleError(containerDiv)(err);
-      return err;
     }
   })();
 
-  return { promise, destroy };
+  return destroy;
 };
 
 const renderDocx = (containerDiv: Element, documentUrl: string) => {
@@ -352,7 +394,7 @@ const renderDocumentIn = (workerSrc: string) => (containerDiv: Element): (() => 
           (() => globalThis)();
           new File([], 'test.txt');
           GlobalWorkerOptions.workerSrc = workerSrc;
-          return renderPDF(containerDiv, documentUrl).destroy;
+          return renderPDF(containerDiv, documentUrl);
         } catch {
           renderErrorMessage(containerDiv)('Your browser does not support showing PDF previews. Click the download button to view this document.');
           return noop;
@@ -376,8 +418,14 @@ export const renderDocument = (workerSrc: string) => (containerDiv: Element): ((
   teardowns.get(containerDiv)?.();
   const destroy = renderDocumentIn(workerSrc)(containerDiv);
   const teardown = () => {
-    if (teardowns.get(containerDiv) === teardown) teardowns.delete(containerDiv);
+    // A superseded render was already torn down when its replacement claimed
+    // the container; running this again would blank the live viewer.
+    if (teardowns.get(containerDiv) !== teardown) return;
+    teardowns.delete(containerDiv);
     destroy();
+    // Only the pdf path owns a destroy; the iframe, embed and error renderers
+    // append straight to the container and would otherwise outlive teardown.
+    containerDiv.replaceChildren();
   };
   teardowns.set(containerDiv, teardown);
   return teardown;
