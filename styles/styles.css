@@ -125,7 +125,7 @@ div.document-viewer-ts.viewer-container {
 }
 
 .document-viewer-ts .viewer-controls input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
+.document-viewer-ts .viewer-controls input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
