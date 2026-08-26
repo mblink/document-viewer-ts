@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { renderDocument } from './base';
+import { renderDocument } from './base.js';
 
 type ViewerProps = {
   documentId: string;
@@ -10,12 +10,10 @@ type ViewerProps = {
 export const Viewer: React.FC<ViewerProps> = (props: ViewerProps) => {
   const viewerContainer = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    viewerContainer.current && renderDocument(props.workerSrc)(viewerContainer.current);
-
-    return () => {
-      viewerContainer.current && viewerContainer.current.firstElementChild && viewerContainer.current.removeChild(viewerContainer.current.firstElementChild);
-    };
-  }, []);
+    const container = viewerContainer.current;
+    if (!container) return;
+    return renderDocument(props.workerSrc)(container);
+  }, [props.workerSrc, props.documentUrl, props.documentId]);
 
   return <div
     ref={viewerContainer}
