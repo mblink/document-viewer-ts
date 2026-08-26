@@ -21,11 +21,9 @@ const noop = () => undefined;
 // which the consumer already serves from a known location.
 const wasmUrlFor = (workerSrc: string): string => String(workerSrc || '').replace(/[^/]*$/, 'wasm/');
 
-const cancelledNames = ['RenderingCancelledException', 'AbortError'];
-
 const isCancelled = (err: unknown): boolean =>
   err instanceof RenderingCancelledException ||
-  (typeof err === 'object' && err !== null && cancelledNames.includes(String((err as { name?: string }).name)));
+  (typeof err === 'object' && err !== null && (err as { name?: string }).name === 'RenderingCancelledException');
 
 // pdf.js's own ceilings (AppOptions maxCanvasPixels / maxCanvasDim). Past
 // either one the browser hands back a blank canvas with no error, so a zoom
@@ -161,10 +159,11 @@ export const renderPDF = (containerDiv: Element, documentUrl: string): (() => vo
     // pdf.js sizes the layer as --total-scale-factor * the raw page width, so
     // this must come from the laid-out canvas: deriving it from the container
     // overshoots wherever .wrapper reserves a classic scrollbar.
-    if (canvas.offsetWidth > 0) {
-      (containerDiv as HTMLElement).style
-        .setProperty('--scale-factor', `${canvas.offsetWidth / page.originalPageWidth}`);
-    }
+    // A container that is not laid out gives a zero-width canvas, and the
+    // text-layer scale below divides by it.
+    if (canvas.offsetWidth === 0 || page.viewport.width === 0) return Promise.resolve();
+    (containerDiv as HTMLElement).style
+      .setProperty('--scale-factor', `${canvas.offsetWidth / page.originalPageWidth}`);
     textLayerGeneration += 1;
     const generation = textLayerGeneration;
     return scaleTextLayer(
@@ -208,6 +207,9 @@ export const renderPDF = (containerDiv: Element, documentUrl: string): (() => vo
     }
     currentPage = null;
     wrapperDiv.remove();
+    containerDiv.classList.remove('document-viewer-ts');
+    containerDiv.removeAttribute('tabIndex');
+    (containerDiv as HTMLElement).style.removeProperty('--scale-factor');
     loadingTask.destroy().catch(noop);
   });
 
@@ -256,7 +258,7 @@ export const renderPDF = (containerDiv: Element, documentUrl: string): (() => vo
 
       const renderPage = async (page: number) => {
         const pdfPage = await upTo(pdfDocument.getPage(page));
-        const originalPageWidth = Number(pdfPage.view[2] || defaultPageWidth);
+        const originalPageWidth = Number(pdfPage.view[2]) - Number(pdfPage.view[0]) || defaultPageWidth;
         const viewport = pdfPage.getViewport({ scale: fittedScale(pdfPage, getZoomVal(originalPageWidth)) });
         canvas.width = viewport.width;
         canvas.height = viewport.height;
@@ -344,7 +346,8 @@ export const renderPDF = (containerDiv: Element, documentUrl: string): (() => vo
       await displayPage(1);
     } catch (err) {
       if (ignorable(err)) return;
-      wrapperDiv.remove();
+      // Releases the worker and the observer too; the wrapper goes with it.
+      controller.abort();
       handleError(containerDiv)(err);
     }
   })();

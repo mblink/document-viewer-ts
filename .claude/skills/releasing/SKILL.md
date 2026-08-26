@@ -56,7 +56,7 @@ A consumer cannot just install this package. It must also:
 3. **Import `styles/styles.css`.**
 4. **Call the returned teardown** when unmounting.
 
-Anything here that changes belongs in `README.md` in the same commit — it is the only place consumers learn about it. `server.js` mirrors the same wiring for the example and is the reference implementation.
+Anything here that changes belongs in `README.md` in the same commit — it is the only place consumers learn about it. `server.cjs` mirrors the same wiring for the example and is the reference implementation.
 
 ## How BondLink consumes it
 

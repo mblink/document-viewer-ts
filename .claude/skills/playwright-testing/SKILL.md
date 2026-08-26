@@ -79,7 +79,7 @@ npx playwright test --headed / --debug                         # watch / step
 npx playwright show-report                                     # traces (on-first-retry)
 ```
 
-Notes: browsers are not vendored (`npx playwright install` first); the fixture PDF is fetched over the network; and `reuseExistingServer` is on locally, so a stray `node server.js` will serve a **stale bundle** — `pkill -f 'node server.js'` when results look impossible.
+Notes: browsers are not vendored (`npx playwright install` first); the fixture PDF is fetched over the network; and `reuseExistingServer` is on locally, so a stray `node server.cjs` will serve a **stale bundle** — `pkill -f 'node server'` when results look impossible.
 
 ## Anti-patterns
 

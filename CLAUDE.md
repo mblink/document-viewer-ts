@@ -84,7 +84,7 @@ Every render owns resources that must be released, and several past bugs came fr
 
 ## Testing setup
 
-Playwright drives the built example (`playwright.config.ts` starts `npm run serve-example` on :8080 and reuses a running one locally). `server.js` mounts the example, the built bundle, `pdfjs-dist/legacy/build` (the worker), and `pdfjs-dist/wasm` at `/wasm`.
+Playwright drives the built example (`playwright.config.ts` starts `npm run serve-example` on :8080 and reuses a running one locally). `server.cjs` mounts the example, the built bundle, `pdfjs-dist/legacy/build` (the worker), and `pdfjs-dist/wasm` at `/wasm`.
 
 The race regressions are only meaningful if they fail without the fix — when touching the serialization in `displayPage`, verify that by removing it and re-running, not by assuming.
 

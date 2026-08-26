@@ -30,10 +30,10 @@ Run the full gate before claiming completion regardless of how many cheap checks
 
 ## Three traps specific to this repo
 
-**1. A stale dev server silently serves an old bundle.** `playwright.config.ts` sets `reuseExistingServer: !process.env.CI`, so a `node server.js` left running from an earlier session gets reused and serves a **stale `build/`** — tests then fail (or pass) against code you did not write. If results look impossible, kill strays first:
+**1. A stale dev server silently serves an old bundle.** `playwright.config.ts` sets `reuseExistingServer: !process.env.CI`, so a `node server.cjs` left running from an earlier session gets reused and serves a **stale `build/`** — tests then fail (or pass) against code you did not write. If results look impossible, kill strays first:
 
 ```bash
-pkill -f 'node server.js'
+pkill -f 'node server'
 ```
 
 Because `prepublishOnly` starts with `clean`, running the full gate is also the reliable way to prove you are testing the current source.

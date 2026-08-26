@@ -39,7 +39,7 @@ Two details that look like style but are load-bearing:
 
 - **Every `await` in a render path is a suspension point where the world may have changed.** After it, you may be torn down, superseded, or both. Call `signal.throwIfAborted()` rather than returning early: a throw unwinds into the funnel that already handles cancellation, whereas an early `return` silently skips the rest of the function.
 - **Register listeners with `{ signal }`, never bare.** The listeners on `containerDiv` are the dangerous ones — that element is owned by the *caller* and outlives the viewer, so a bare listener retains the whole dead closure (document proxy, canvas backing store, text content) for the life of the page.
-- **One listener per viewer, not one per page view.** A `resize` handler registered per page means N pages produce N handlers all rewriting the layer on a single resize. Register once, read a mutable current-page slot.
+- **One `ResizeObserver` on the container per viewer, not a window listener per page view.** A window listener never fires when a tab, accordion or modal reveals the container, which leaves it stuck at a 0x0 canvas. Observe once, read a mutable current-page slot, and ignore unchanged or zero widths.
 - **Never fire a render without handling its rejection.** `@typescript-eslint/no-floating-promises` is an **error** here specifically because a discarded render promise is what let the canvas race go unnoticed. Use `void` only where the promise carries its own `.catch`.
 - **Teardown is idempotent and must be safe to call at any point** — before load completes, mid-render, twice in a row.
 - **The React effect must tear down and clear the container.** Its dependency array includes `workerSrc`, `documentUrl` and `documentId`: changing any of them is a *different document*, so the old one must be destroyed, not reused.
@@ -49,9 +49,9 @@ Two details that look like style but are load-bearing:
 Two things must be right or the viewer fails in ways that look like code bugs:
 
 - **`workerSrc`** is supplied by the consumer. Imports come from `pdfjs-dist/legacy/build/pdf.mjs`, so the worker must be the matching **legacy** build.
-- **`wasmUrl`** is derived from `workerSrc` by `wasmUrlFor`. pdf.js 6 loads its JBIG2/OpenJPEG/QCMS decoders — *and the plain-JS fallbacks beside them* — from `wasmUrl`, whose default is page-relative and therefore 404s on any nested route. Consumers must copy `pdfjs-dist/wasm` next to the worker they serve. `server.js` mirrors this for the example.
+- **`wasmUrl`** is derived from `workerSrc` by `wasmUrlFor`. pdf.js 6 loads its JBIG2/OpenJPEG/QCMS decoders — *and the plain-JS fallbacks beside them* — from `wasmUrl`, whose default is page-relative and therefore 404s on any nested route. Consumers must copy `pdfjs-dist/wasm` next to the worker they serve. `server.cjs` mirrors this for the example.
 
-The scale custom properties are likewise not optional. `getZoomVal` writes `--scale-factor`, but that is only the **input**: pdf.js 6 sizes each span from `--total-scale-factor` (derived in CSS as `calc(var(--scale-factor) * var(--user-unit))`) via `--text-scale-factor` and a per-span `--font-height`, and positions it with `--scale-x`/`--rotate`. `styles/styles.css` owns that derivation because it is a fork of pdf.js's own text-layer CSS — when upgrading pdf.js, diff it against `node_modules/pdfjs-dist/web/pdf_viewer.css`, which is the authoritative copy. Miss it and the layer silently renders every span at 16px.
+The scale custom properties are likewise not optional. `refreshTextLayer` writes `--scale-factor` from the laid-out canvas, but that is only the **input**: pdf.js 6 sizes each span from `--total-scale-factor` (derived in CSS as `calc(var(--scale-factor) * var(--user-unit))`) via `--text-scale-factor` and a per-span `--font-height`, and positions it with `--scale-x`/`--rotate`. `styles/styles.css` owns that derivation because it is a fork of pdf.js's own text-layer CSS — when upgrading pdf.js, diff it against `node_modules/pdfjs-dist/web/pdf_viewer.css`, which is the authoritative copy. Miss it and the layer silently renders every span at 16px.
 
 ## Reviewing a change here
 

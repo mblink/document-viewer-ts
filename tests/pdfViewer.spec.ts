@@ -297,11 +297,16 @@ test.describe('pdf viewer', () => {
       return {
         spinners: div.querySelectorAll('.lds-ring').length,
         errors: div.querySelectorAll('.error-message').length,
+        // A failed load must release the worker, not only the DOM. The class is
+        // removed by the abort handler, so its absence is the observable proof
+        // that teardown ran rather than just the wrapper being detached.
+        released: !div.classList.contains('document-viewer-ts'),
       };
     });
 
     expect(result.errors).toBe(1);
     expect(result.spinners).toBe(0);
+    expect(result.released).toBe(true);
   });
 
   test('the highest zoom still renders pixels', async ({ page }) => {
