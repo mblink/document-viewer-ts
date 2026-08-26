@@ -2,6 +2,7 @@ import { Page, expect, test } from '@playwright/test';
 
 declare global {
   interface Window {
+    wait: (ms: number) => Promise<void>;
     documentViewerHarness: {
       renderDocument: (workerSrc: string) => (containerDiv: Element) => () => void;
       workerSrc: string;
@@ -31,6 +32,11 @@ const collectErrors = (page: Page): string[] => {
 
 test.describe('pdf viewer', () => {
   test.beforeEach(async ({ page }) => {
+    // These specs wait on renders that report completion only as DOM changes,
+    // so the wait belongs in the page rather than inline at seven call sites.
+    await page.addInitScript(() => {
+      window.wait = (ms) => new Promise((r) => { setTimeout(r, ms); });
+    });
     // Go to the starting url before each test.
     await page.goto('./viewer.html');
   });
@@ -175,18 +181,17 @@ test.describe('pdf viewer', () => {
       div.setAttribute('data-document-url', fixtureUrl);
       document.body.appendChild(div);
 
-      const settled = () => new Promise((r) => { setTimeout(r, 2500); });
       const teardown = renderDocument(workerSrc)(div);
-      await settled();
+      await window.wait(2500);
       const rendered = div.querySelectorAll('canvas').length;
 
       teardown();
-      await settled();
+      await window.wait(2500);
       const afterTeardown = div.children.length;
 
       // A leaked keydown listener would still drive the torn-down closure.
       div.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
-      await settled();
+      await window.wait(2500);
       const afterKey = div.children.length;
 
       return { rendered, afterTeardown, afterKey };
@@ -214,7 +219,7 @@ test.describe('pdf viewer', () => {
       // loading promise with a plain Error, which must not reach handleError.
       const teardown = renderDocument(workerSrc)(div);
       teardown();
-      await new Promise((r) => { setTimeout(r, 3000); });
+      await window.wait(3000);
 
       return {
         errorMessages: div.querySelectorAll('.error-message').length,
@@ -241,7 +246,7 @@ test.describe('pdf viewer', () => {
       // What init() does on call and on load, and what StrictMode does on mount.
       renderDocument(workerSrc)(div);
       renderDocument(workerSrc)(div);
-      await new Promise((r) => { setTimeout(r, 3000); });
+      await window.wait(3000);
       return {
         wrappers: div.querySelectorAll('.wrapper').length,
         canvases: div.querySelectorAll('canvas').length,
@@ -262,17 +267,16 @@ test.describe('pdf viewer', () => {
       div.id = 'probe-4';
       div.setAttribute('data-document-url', fixtureUrl);
       document.body.appendChild(div);
-      const settled = () => new Promise((r) => { setTimeout(r, 2500); });
 
       const teardownA = renderDocument(workerSrc)(div);
-      await settled();
+      await window.wait(2500);
       renderDocument(workerSrc)(div);
-      await settled();
+      await window.wait(2500);
       const live = div.querySelectorAll('canvas').length;
 
       // A holds a teardown for a render that no longer owns the container.
       teardownA();
-      await settled();
+      await window.wait(2500);
       return { live, afterStale: div.querySelectorAll('canvas').length };
     }, fixture);
 
@@ -289,7 +293,7 @@ test.describe('pdf viewer', () => {
       div.setAttribute('data-document-url', '/definitely-not-a-real-document.pdf');
       document.body.appendChild(div);
       renderDocument(workerSrc)(div);
-      await new Promise((r) => { setTimeout(r, 6000); });
+      await window.wait(6000);
       return {
         spinners: div.querySelectorAll('.lds-ring').length,
         errors: div.querySelectorAll('.error-message').length,
@@ -337,13 +341,13 @@ test.describe('pdf viewer', () => {
       document.body.appendChild(host);
 
       renderDocument(workerSrc)(div);
-      await new Promise((r) => { setTimeout(r, 3000); });
+      await window.wait(3000);
       const hidden = div.querySelector('canvas');
       const whileHidden = hidden instanceof HTMLCanvasElement ? hidden.width : -1;
 
       // A tab, accordion or modal opening fires no window resize event.
       host.style.display = 'block';
-      await new Promise((r) => { setTimeout(r, 3000); });
+      await window.wait(3000);
       const shown = div.querySelector('canvas');
       const layer = div.querySelector('.text-layer > .textLayer');
       return {

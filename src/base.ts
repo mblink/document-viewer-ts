@@ -143,6 +143,13 @@ export const renderPDF = (containerDiv: Element, documentUrl: string): (() => vo
   // lets superseded requests drop out instead of queueing a redundant render.
   const controller = new AbortController();
   const { signal } = controller;
+  // JavaScript has no cancellable await, so resumption has to be made
+  // conditional by hand. Awaiting through this rather than bare keeps the
+  // guarded form the shorter one to write and the funnel the only exit.
+  const upTo = <A>(p: Promise<A>): Promise<A> => p.then((a) => { signal.throwIfAborted(); return a; });
+  // pdf.js rejects in-flight work with a plain Error when the loading task is
+  // destroyed, so a cancelled render is not identifiable from the error alone.
+  const ignorable = (err: unknown): boolean => signal.aborted || isCancelled(err);
   let currentRenderTask: RenderTask | null = null;
   let renderChain: Promise<void> = Promise.resolve();
   let requestedPage = 1;
@@ -208,8 +215,7 @@ export const renderPDF = (containerDiv: Element, documentUrl: string): (() => vo
 
   void (async () => {
     try {
-      const pdfDocument: PDFDocumentProxy = await loadingTask.promise;
-      signal.throwIfAborted();
+      const pdfDocument: PDFDocumentProxy = await upTo(loadingTask.promise);
       wrapperDiv.removeChild(loadingIndicator);
 
       const isValidPage = (page: number) => page <= pdfDocument.numPages && page > 0;
@@ -249,8 +255,7 @@ export const renderPDF = (containerDiv: Element, documentUrl: string): (() => vo
       wrapperDiv.appendChild(canvasContainer);
 
       const renderPage = async (page: number) => {
-        const pdfPage = await pdfDocument.getPage(page);
-        signal.throwIfAborted();
+        const pdfPage = await upTo(pdfDocument.getPage(page));
         const originalPageWidth = Number(pdfPage.view[2] || defaultPageWidth);
         const viewport = pdfPage.getViewport({ scale: fittedScale(pdfPage, getZoomVal(originalPageWidth)) });
         canvas.width = viewport.width;
@@ -259,13 +264,11 @@ export const renderPDF = (containerDiv: Element, documentUrl: string): (() => vo
         const task = pdfPage.render({ canvas, viewport });
         currentRenderTask = task;
         try {
-          await task.promise;
+          await upTo(task.promise);
         } finally {
           if (currentRenderTask === task) currentRenderTask = null;
         }
-        signal.throwIfAborted();
-        const textContent = await pdfPage.getTextContent();
-        signal.throwIfAborted();
+        const textContent = await upTo(pdfPage.getTextContent());
         currentPage = { textContent, pdfPage, viewport, originalPageWidth };
         await refreshTextLayer(currentPage);
       };
@@ -278,9 +281,7 @@ export const renderPDF = (containerDiv: Element, documentUrl: string): (() => vo
         renderChain = renderChain
           .then(() => (signal.aborted || page !== requestedPage ? undefined : renderPage(page)))
           .catch((err: unknown) => {
-            // pdf.js rejects in-flight work with a plain Error when the loading
-            // task is destroyed, so the signal has to be consulted directly.
-            if (signal.aborted || isCancelled(err)) return;
+            if (ignorable(err)) return;
             handleError(containerDiv)(err);
           });
         return renderChain;
@@ -342,7 +343,7 @@ export const renderPDF = (containerDiv: Element, documentUrl: string): (() => vo
 
       await displayPage(1);
     } catch (err) {
-      if (signal.aborted || isCancelled(err)) return;
+      if (ignorable(err)) return;
       wrapperDiv.remove();
       handleError(containerDiv)(err);
     }
