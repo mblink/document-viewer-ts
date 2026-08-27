@@ -61,6 +61,21 @@ await expect(pageNumber).toHaveValue('9');                              // inten
 
 `toHaveCount(1)` catches both duplication and disappearance. `toBeAttached()` alone would pass with five stacked layers — which was the bug.
 
+## Assertions that cannot fail
+
+Every one of these was written here, passed, and proved worthless under a negative control. Check a new assertion against this list before trusting it.
+
+| Assertion | Why it can't fail |
+| --- | --- |
+| `expect(layers).toHaveCount(1)` | `scaleTextLayer` ends in `replaceChildren`, so the count is exactly 1 by construction — no matter what the generation guard does. |
+| Counting opaque pixels to prove the canvas painted | pdf.js creates its context with `alpha: false` **and** fills the whole canvas white before executing a single operator, so alpha is always 255 and a blank page scores the same as a rendered one. Sample a region known to contain glyphs and count non-white pixels. |
+| Counting container children to detect a leaked listener | The leaked handler writes to *detached* nodes — the input, the canvas, the text layer are all off the DOM — so nothing is ever appended back and the count stays 0 either way. |
+| Asserting no errors at all on the example page | It embeds a live Microsoft Office viewer for its `.doc`, which throws CSP violations, font failures and XML parse errors of its own. Filter for the specific fault. |
+
+The shared root cause: **the assertion measures something the code guarantees for an unrelated reason.** Ask what single line you would delete to make it fail — if you can't name one, it isn't a control.
+
+Not every guard can be covered. The text-layer generation guard has no failing control at all under pdf.js 6: the layer is sized by CSS, so a superseded resize run landing last produces identical geometry *and* identical content. Say so rather than writing an assertion that merely passes.
+
 ## The DOM contract
 
 The specs assert on the same runtime-assigned class names that `styles/styles.css` is keyed to: `.textLayer` (pdf.js's own), `.text-layer`, `.page-container`, `.page-number-input`, `.prev-button`, `.next-button`, `.zoom-select`, and the `#doc-1` / `#doc-1-canvas` ids from the example. **Renaming any of them means updating `base.ts`, `styles.css`, and this spec together** — the compiler cannot see any of these edges.

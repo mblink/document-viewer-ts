@@ -37,7 +37,15 @@ Two details that look like style but are load-bearing:
 
 ## The rules you must follow
 
-- **Every `await` in a render path is a suspension point where the world may have changed.** After it, you may be torn down, superseded, or both. Call `signal.throwIfAborted()` rather than returning early: a throw unwinds into the funnel that already handles cancellation, whereas an early `return` silently skips the rest of the function.
+- **Every `await` in a render path is a suspension point where the world may have changed.** After it, you may be torn down, superseded, or both. JavaScript has no cancellable `await`, so resumption has to be made conditional by hand — but not at each site. Await *through* the combinator:
+
+  ```ts
+  const upTo = <A>(p: Promise<A>): Promise<A> =>
+    p.then((a) => { signal.throwIfAborted(); return a; });
+  ```
+
+  That leaves `throwIfAborted` at one site and makes the guarded form the shorter one to write, so a bare `await` in a render path reads as obviously wrong rather than looking identical to a correct one. A throw also unwinds into the funnel that already handles cancellation, where an early `return` silently skips the rest of the function. Nothing in TypeScript can *reject* a bare `await` — this is the strongest available substitute.
+- **An abort is not identifiable from the error alone.** pdf.js rejects in-flight work with a plain `Error` (`"Loading aborted"`) when the loading task is destroyed, so the funnel has to consult the signal directly — `ignorable = signal.aborted || isCancelled(err)`. Do not widen `isCancelled` to match `AbortError` by name instead: that swallows aborts the viewer did not cause (a service worker, a bfcache restore) and leaves the spinner up with no error shown.
 - **Register listeners with `{ signal }`, never bare.** The listeners on `containerDiv` are the dangerous ones — that element is owned by the *caller* and outlives the viewer, so a bare listener retains the whole dead closure (document proxy, canvas backing store, text content) for the life of the page.
 - **One `ResizeObserver` on the container per viewer, not a window listener per page view.** A window listener never fires when a tab, accordion or modal reveals the container, which leaves it stuck at a 0x0 canvas. Observe once, read a mutable current-page slot, and ignore unchanged or zero widths.
 - **Never fire a render without handling its rejection.** `@typescript-eslint/no-floating-promises` is an **error** here specifically because a discarded render promise is what let the canvas race go unnoticed. Use `void` only where the promise carries its own `.catch`.
@@ -50,6 +58,8 @@ Two things must be right or the viewer fails in ways that look like code bugs:
 
 - **`workerSrc`** is supplied by the consumer. Imports come from `pdfjs-dist/legacy/build/pdf.mjs`, so the worker must be the matching **legacy** build.
 - **`wasmUrl`** is derived from `workerSrc` by `wasmUrlFor`. pdf.js 6 loads its JBIG2/OpenJPEG/QCMS decoders — *and the plain-JS fallbacks beside them* — from `wasmUrl`, whose default is page-relative and therefore 404s on any nested route. Consumers must copy `pdfjs-dist/wasm` next to the worker they serve. `server.cjs` mirrors this for the example.
+
+**`pdfPage.view` is `[x0, y0, x1, y1]`, so the page width is the span, not `view[2]`.** A print-ready CropBox like `[9 9 621 801]` has `view[2] === 621` but a width of 612; dividing by the wrong one mis-sizes the text layer by ~1.5% across the page. Always `view[2] - view[0]`. The tracemonkey fixture is `[0 0 612 792]`, so no test in this repo can catch it.
 
 The scale custom properties are likewise not optional. `refreshTextLayer` writes `--scale-factor` from the laid-out canvas, but that is only the **input**: pdf.js 6 sizes each span from `--total-scale-factor` (derived in CSS as `calc(var(--scale-factor) * var(--user-unit))`) via `--text-scale-factor` and a per-span `--font-height`, and positions it with `--scale-x`/`--rotate`. `styles/styles.css` owns that derivation because it is a fork of pdf.js's own text-layer CSS — when upgrading pdf.js, diff it against `node_modules/pdfjs-dist/web/pdf_viewer.css`, which is the authoritative copy. Miss it and the layer silently renders every span at 16px.
 
