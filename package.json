@@ -77,7 +77,7 @@
     "eslint": "^10.9.1",
     "express": "^5.2.1",
     "globals": "^17.11.0",
-    "pdfjs-dist": "6.2.108",
+    "pdfjs-dist": "6.5.438",
     "process": "~0.11.10",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
