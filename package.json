@@ -1,6 +1,6 @@
 {
   "name": "document-viewer-ts",
-  "version": "2.0.0-legacy",
+  "version": "2.0.1-legacy",
   "description": "PDF and MS Doc viewer written in TypeScript for React and vanilla JavaScript",
   "type": "module",
   "exports": {

@@ -24,7 +24,7 @@ div.document-viewer-ts.viewer-container {
 }
 
 .document-viewer-ts div.page-container {
-  filter: drop-shadow(0 0 3px #d2d5d8);
+  box-shadow: 0 0 3px #d2d5d8;
   position: relative;
   margin-bottom: 1rem;
   margin-top: 1rem;
