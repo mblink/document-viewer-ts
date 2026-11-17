@@ -31,6 +31,7 @@ npm run lint             # eslint --fix
 npm run lint:no-fix
 npm run serve-example    # build the example and serve it on :8080
 npm run prepublishOnly   # clean + build + test + lint --max-warnings 0 — this is exactly what CI runs
+npm run release          # require a pushed git tag at HEAD, log in to npm if needed, then publish
 ```
 
 Run a single test: `npx playwright test --project=chromium -g "controls work"`.
