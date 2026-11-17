@@ -50,11 +50,12 @@ npm runs this automatically on publish. Run it yourself first — it is the same
 Then publish with:
 
 ```bash
-npm run release           # npm whoami || npm login, then npm publish
+npm run release           # check the git tag, npm whoami || npm login, then npm publish
 ```
 
 - **`publishConfig.tag` is `latest`** because npm 11 treats the `-legacy` suffix as a prerelease and refuses to publish one without a tag ("You must specify a tag using --tag"). Every release has gone out as `latest`; keep it that way.
 - **`npm publish` never prompts for login.** Unauthenticated, it fails with a misleading `E404 Not Found - PUT`. `release` checks `npm whoami` first and runs `npm login` if needed.
+- **A git tag for the version must exist on `origin` and point at HEAD.** npm checks nothing about git, so `scripts/check-release-tag.mjs` refuses otherwise. Tags have been written both bare (`2.0.0-legacy`) and `v`-prefixed (`v2.1.0-legacy`); either passes. Tag and push before releasing: `git tag v<version> && git push origin v<version>`.
 - The script is `release`, not `publish`: `publish` is an npm lifecycle hook that runs *after* publishing, so naming it that would recurse.
 
 ## What consumers must do
