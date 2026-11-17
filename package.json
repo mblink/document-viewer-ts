@@ -35,7 +35,8 @@
     "serve-example": "npm run build-example && node server.cjs",
     "typecheck": "tsc -p tests/tsconfig.json",
     "prepublishOnly": "npm run clean && npm run build && npm run typecheck && npm run test && npm run lint:no-fix -- --max-warnings 0",
-    "test": "playwright test"
+    "test": "playwright test",
+    "release": "npm whoami || npm login && npm publish"
   },
   "repository": {
     "type": "git",
@@ -98,5 +99,8 @@
     "react-dom": {
       "optional": true
     }
+  },
+  "publishConfig": {
+    "tag": "latest"
   }
 }
